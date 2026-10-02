@@ -36,7 +36,7 @@ To verify calculations, use the reference values in [Original sheets](#original-
 
 | File | Purpose |
 | --- | --- |
-| `src/types.ts` | Data model (`Recipe`, `Variant`, `Section`, `Ingredient`, `Amount`). Percentages are in percent units (72 = 72%). |
+| `src/types.ts` | Data model (`Recipe`, `Variant`, `Section`, `Ingredient`, `Amount`). Percentages are in percent units (72 = 72%). Also `categories` (list grouping, in display order) and `categoryOf()`, which maps a missing or unknown category to `other`. |
 | `src/calc.ts` | Pure calculation engine (`computeVariant`) plus number formatting and parsing. |
 | `src/seed.ts` | Starter recipes converted from the original Numbers sheets. |
 | `src/store.tsx` | `StoreProvider`: recipes, auth, a localStorage cache, the offline write queue and Supabase sync. |

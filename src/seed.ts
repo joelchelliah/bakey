@@ -69,6 +69,7 @@ export function starterRecipes(): Recipe[] {
   return [
     recipe({
       name: 'Pizza',
+      category: 'savory',
       emoji: '🍕',
       mode: 'portions',
       portions: 6,
@@ -117,6 +118,7 @@ export function starterRecipes(): Recipe[] {
     }),
     recipe({
       name: 'Seeded – overnight proof',
+      category: 'bread',
       emoji: '🥜',
       mode: 'total',
       totalWeight: 2200,
@@ -140,6 +142,7 @@ export function starterRecipes(): Recipe[] {
     }),
     recipe({
       name: 'Spiced – overnight proof',
+      category: 'bread',
       emoji: '🌿',
       mode: 'total',
       totalWeight: 2200,
@@ -163,6 +166,7 @@ export function starterRecipes(): Recipe[] {
     }),
     recipe({
       name: 'Pan de Coco – overnight BF',
+      category: 'bread',
       emoji: '🥥',
       mode: 'total',
       totalWeight: 1400,
@@ -209,6 +213,7 @@ export function starterRecipes(): Recipe[] {
     }),
     recipe({
       name: 'Belgian Waffles',
+      category: 'sweet',
       emoji: '🧇',
       mode: 'anchor',
       anchorName: 'Eggs',
@@ -235,6 +240,7 @@ export function starterRecipes(): Recipe[] {
     }),
     recipe({
       name: 'Crêpe',
+      category: 'sweet',
       emoji: '🥞',
       mode: 'anchor',
       anchorName: 'Eggs',

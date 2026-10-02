@@ -2,14 +2,15 @@ import { useMemo, useState } from 'react'
 import { allIngredients, computeVariant, fmtPct } from '../../calc'
 import { TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
-import { Input, TextArea } from '../../components/Input'
+import { Input, Select, TextArea } from '../../components/Input'
 import { Page } from '../../components/Page'
 import { SectionTitle } from '../../components/SectionTitle'
 import { TopBar } from '../../components/TopBar'
 import { Warning } from '../../components/Warning'
 import { go } from '../../router'
 import { useStore } from '../../storeContext'
-import type { Recipe, Section, Variant } from '../../types'
+import { categories, categoryOf } from '../../types'
+import type { Category, Recipe, Section, Variant } from '../../types'
 import { clone, uid } from '../../util'
 import { AddButton } from './AddButton'
 import { copyVariant, moveIngredient, moveSection } from './recipe'
@@ -25,7 +26,7 @@ interface RecipeEditProps {
 
 export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   const { save, remove } = useStore()
-  const [r, setR] = useState<Recipe>(() => clone(initial))
+  const [r, setR] = useState<Recipe>(() => ({ ...clone(initial), category: categoryOf(initial) }))
   const [vid, setVid] = useState(initial.activeVariant ?? initial.variants[0].id)
   const variant = r.variants.find((v) => v.id === vid) ?? r.variants[0]
   const res = useMemo(() => computeVariant(r, variant), [r, variant])
@@ -107,6 +108,18 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
             autoFocus={isNew}
           />
         </div>
+        <Select
+          className={s.category}
+          aria-label="Category"
+          value={r.category}
+          onChange={(e) => set({ category: e.target.value as Category })}
+        >
+          {Object.entries(categories).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Select>
       </Card>
 
       <SectionTitle>Scale by</SectionTitle>

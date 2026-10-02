@@ -6,6 +6,7 @@ export function newRecipe(): Recipe {
     id: uid(),
     name: '',
     emoji: '🍞',
+    category: 'bread',
     notes: '',
     mode: 'total',
     totalWeight: 1000,

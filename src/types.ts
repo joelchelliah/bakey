@@ -7,6 +7,16 @@ export type ScalingMode =
 
 export type Group = 'flour' | 'liquid' | 'other'
 
+/** Recipe categories in list order, with their labels. */
+export const categories = { bread: 'Bread', savory: 'Savory', sweet: 'Sweet', other: 'Other' } as const
+
+export type Category = keyof typeof categories
+
+/** The recipe's category, falling back to 'other' when it's missing or unknown. */
+export function categoryOf(r: Recipe): Category {
+  return r.category && Object.hasOwn(categories, r.category) ? r.category : 'other'
+}
+
 export type Amount =
   | { kind: 'percent'; value: number }
   | { kind: 'remainder' } // fills its group up to the target (flour: 100%, liquid: hydration)
@@ -44,6 +54,7 @@ export interface Recipe {
   id: string
   name: string
   emoji: string
+  category?: Category // read through categoryOf(); old or corrupt rows may lack it
   notes: string
   mode: ScalingMode
   anchorName?: string // ingredient name used as anchor in 'anchor' mode (matched per variant)
