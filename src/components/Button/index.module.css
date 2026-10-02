@@ -1,0 +1,39 @@
+.icon {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: var(--muted);
+  flex: none;
+}
+.icon:active {
+  background: var(--accent-soft);
+}
+
+.text {
+  color: var(--accent);
+  font-weight: 500;
+  padding: 10px 8px;
+}
+.primary {
+  font-weight: 700;
+}
+
+.icon.danger,
+.text.danger {
+  color: var(--danger);
+}
+
+.solid {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 14px 20px;
+  width: 100%;
+  max-width: 320px;
+}
+.solid:disabled {
+  opacity: 0.5;
+}

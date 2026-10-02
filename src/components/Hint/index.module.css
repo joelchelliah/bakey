@@ -1,0 +1,8 @@
+.hint {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 14px 8px;
+}
+.flush {
+  margin: 0;
+}

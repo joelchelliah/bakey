@@ -1,0 +1,35 @@
+.nameRow {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+}
+.nameRow .emoji {
+  flex: none;
+  width: 56px;
+  text-align: center;
+  font-size: 24px;
+  padding: 4px;
+}
+.nameRow .name {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.total {
+  text-align: right;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin: 0 4px;
+  font-size: 15px;
+}
+
+.delete {
+  width: 100%;
+  padding: 15px;
+  margin-top: 28px;
+  border-radius: var(--radius);
+  color: var(--danger);
+  font-weight: 600;
+  background: var(--card);
+  border: 1px solid var(--line);
+}

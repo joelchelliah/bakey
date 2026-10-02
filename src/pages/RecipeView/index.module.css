@@ -1,0 +1,42 @@
+.title {
+  font-size: 28px;
+  line-height: 1.15;
+  margin: 4px 0 16px;
+  letter-spacing: -0.02em;
+}
+
+.variants {
+  margin-bottom: 12px;
+}
+
+.tableNote {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin: -4px 4px 12px;
+  min-height: 20px;
+}
+.clear {
+  color: var(--accent);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.notes {
+  padding: 4px 16px 12px;
+}
+.notes h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 10px 0 6px;
+}
+.notes p {
+  white-space: pre-wrap;
+  margin: 0;
+  tab-size: 4;
+  font-variant-numeric: tabular-nums;
+}

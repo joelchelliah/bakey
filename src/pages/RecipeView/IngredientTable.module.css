@@ -1,0 +1,99 @@
+.table {
+  padding: 4px 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 5.6rem 4.4rem;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 14px;
+  text-align: left;
+}
+.row > :nth-child(n + 2) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.head {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding-top: 8px;
+  padding-bottom: 6px;
+}
+
+.sub {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  padding-top: 12px;
+  padding-bottom: 2px;
+}
+
+.ing {
+  min-height: 50px;
+  border-top: 1px solid var(--line);
+}
+.sub + .ing {
+  border-top: 0;
+}
+.name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pct {
+  color: var(--muted);
+  font-size: 15px;
+}
+.pct sup {
+  color: var(--accent);
+}
+.weight {
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.tick {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  display: grid;
+  place-items: center;
+  color: var(--accent-ink);
+}
+
+.done {
+  color: var(--done);
+}
+.done .tick {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.done .name {
+  text-decoration: line-through;
+}
+.done .weight {
+  font-weight: 500;
+}
+
+.foot {
+  border-top: 2px solid var(--line);
+  min-height: 50px;
+  font-weight: 700;
+}
+.foot > :nth-child(2) {
+  color: var(--muted);
+  font-size: 15px;
+}
+.foot > :nth-child(3) {
+  font-size: 20px;
+}

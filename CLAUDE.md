@@ -6,7 +6,7 @@ A mobile-first PWA recipe book that uses baker's percentages. It replaces a set 
 
 - Vite + React 19 + TypeScript (strict). `vite-plugin-pwa` handles installability and offline caching.
 - Supabase handles auth (email OTP/magic link) and storage. The app is hosted on Vercel as a static site.
-- No router library: hash routing lives in `src/router.ts`. No CSS framework: plain CSS in `src/styles.css`. There is only a dark theme; there's no light mode and no theme toggle.
+- No router library: hash routing lives in `src/router.ts`. No CSS framework: CSS modules, one per component (see [Styling](#styling)). There is only a dark theme; there's no light mode and no theme toggle.
 
 ## Commands
 
@@ -31,10 +31,24 @@ To verify calculations, use the reference values in [Original sheets](#original-
 | `src/seed.ts` | Starter recipes converted from the original Numbers sheets. |
 | `src/store.tsx` | React context: recipes, auth, a localStorage cache, the offline write queue and Supabase sync. |
 | `src/supabase.ts` | Supabase client. It is `null` when env vars are missing, which puts the app in local-only mode with no login. |
-| `src/pages/*` | `RecipeList`, `RecipeView` (the baking screen), `RecipeEdit`, `Settings`, `Login`. |
-| `src/components/` | `NumField` (decimal input that accepts a comma or a dot, with an optional stepper) and `Icon` (inline SVG paths). |
+| `src/styles/tokens.css` | Colour, radius and font tokens as CSS custom properties. The only place colours are defined. |
+| `src/styles/global.css` | Reset and `body` styles. The only global CSS besides tokens. |
+| `src/pages/<Name>/` | One folder per screen: `RecipeList`, `RecipeView` (the baking screen), `RecipeEdit`, `Settings`, `Login`. Larger screens keep their subcomponents next to `index.tsx` (e.g. `RecipeEdit/IngredientEditor.tsx`). |
+| `src/components/<Name>/` | Shared UI: `Page`, `TopBar`, `Card`, `Row`/`RowValue`, `SectionTitle`, `Button` (`IconButton`, `TextButton`, `PrimaryButton`), `Input`/`Select`/`TextArea`, `NumField` (decimal input that accepts a comma or a dot, with an optional stepper), `Segmented`, `Switch`, `Warning`, `Hint`, `Icon` (inline SVG paths). |
 | `src/hooks.ts` | `useWakeLock` (always on in `RecipeView`) and `useLocalState` (per-device localStorage state). |
 | `supabase/migrations/` | SQL for the `recipes` table + RLS. |
+
+## Component conventions
+
+- Every component that takes props declares a named `<Component>Props` interface directly above it (e.g. `AddButtonProps`), never inline object types or a generic `Props`. Put per-prop doc comments on the interface fields.
+- Components without props (e.g. `Settings`) need no interface.
+
+## Styling
+
+- Each component is `index.tsx` + `index.module.css`; a subcomponent in a page folder is `Foo.tsx` + `Foo.module.css`. Class names are camelCase (`s.tableNote`).
+- Colours always come from the tokens in `src/styles/tokens.css`. Never hardcode a colour in a module. The background colour is also repeated in `index.html` (`theme-color`) and `vite.config.ts` (manifest), so keep those in sync.
+- A `className` passed to a shared component may only *add* properties the component doesn't set itself (margins, `flex`). To override a property it does set, use a prop (e.g. `NumField narrow`, `Hint flush`) or a parent-scoped selector such as `.editor > .head`. That gives two-class specificity, so the result never depends on CSS bundle order.
+- `cx()` in `src/util.ts` joins conditional class names.
 
 ## Calculation model
 

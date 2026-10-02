@@ -1,0 +1,29 @@
+.tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 8px;
+  scrollbar-width: none;
+}
+.tabs button {
+  flex: none;
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+}
+.tabs button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.inline {
+  display: inline-flex;
+  align-items: center;
+}

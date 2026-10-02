@@ -43,7 +43,11 @@ function writeJson(key: string, value: unknown) {
   }
 }
 
-export function StoreProvider({ children }: { children: ReactNode }) {
+interface StoreProviderProps {
+  children: ReactNode
+}
+
+export function StoreProvider({ children }: StoreProviderProps) {
   const [recipes, setRecipes] = useState<Recipe[]>(() => readJson<Recipe[]>(CACHE_KEY, []))
   const [session, setSession] = useState<Session | null>(null)
   const [auth, setAuth] = useState<AuthState>(supabase ? 'loading' : 'signedIn')

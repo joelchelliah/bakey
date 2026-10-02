@@ -1,3 +1,5 @@
+import { TextButton } from './components/Button'
+import { Page } from './components/Page'
 import { Login } from './pages/Login'
 import { RecipeEdit, newRecipe } from './pages/RecipeEdit'
 import { RecipeList } from './pages/RecipeList'
@@ -12,7 +14,7 @@ export function App() {
   const route = useRoute()
   const fresh = useMemo(() => newRecipe(), [route.name === 'new']) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (auth === 'loading') return <div className="page center">🥖</div>
+  if (auth === 'loading') return <Page center>🥖</Page>
   if (auth === 'signedOut') return <Login />
 
   switch (route.name) {
@@ -33,11 +35,9 @@ export function App() {
 
 function NotFound() {
   return (
-    <div className="page center">
+    <Page center>
       <p>Recipe not found.</p>
-      <a className="textbtn" href="#/">
-        Back to recipes
-      </a>
-    </div>
+      <TextButton href="#/">Back to recipes</TextButton>
+    </Page>
   )
 }

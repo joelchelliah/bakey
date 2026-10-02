@@ -1,0 +1,49 @@
+.editor {
+  border-bottom: 1px solid var(--line);
+}
+.open {
+  background: color-mix(in srgb, var(--accent-soft) 70%, transparent);
+}
+
+/* Parent-scoped so these win over the Row defaults */
+.editor > .head {
+  border-bottom: 0;
+  padding-right: 4px;
+  gap: 6px;
+}
+.details {
+  padding: 0 0 4px;
+}
+.details > .detail {
+  min-height: 46px;
+  border-bottom: 0;
+}
+.details > .actions {
+  padding-right: 4px;
+}
+
+.select {
+  max-width: 60%;
+}
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.computed {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 4.5em;
+  line-height: 1.1;
+}
+.computed small {
+  display: block;
+  font-weight: 500;
+  font-size: 12px;
+  max-width: 8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

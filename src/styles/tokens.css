@@ -1,0 +1,17 @@
+:root {
+  --bg: #15100c;
+  --card:rgb(51, 36, 26);
+  --ink: #f3eadf;
+  --muted: #b9a793;
+  --line: #5a4333;
+  --accent: #e08a4c;
+  --accent-ink: #15100c;
+  --accent-soft: #55392a;
+  --danger: #ff8a80;
+  --warn-bg: #4a3517;
+  --done: #7d6e60;
+  --knob: #fff;
+  --radius: 14px;
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}

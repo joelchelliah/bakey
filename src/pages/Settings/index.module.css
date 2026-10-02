@@ -1,0 +1,13 @@
+.split {
+  justify-content: space-between;
+}
+
+.rowButton {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 15px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--accent);
+  font-weight: 500;
+}

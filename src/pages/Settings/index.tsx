@@ -1,10 +1,17 @@
 import { useRef, useState } from 'react'
-import { Icon } from '../components/Icon'
-import { href } from '../router'
-import { starterRecipes } from '../seed'
-import { useStore } from '../store'
-import { supabase } from '../supabase'
-import type { Recipe } from '../types'
+import { IconButton, TextButton } from '../../components/Button'
+import { Card } from '../../components/Card'
+import { Hint } from '../../components/Hint'
+import { Page } from '../../components/Page'
+import { Row, RowValue } from '../../components/Row'
+import { SectionTitle } from '../../components/SectionTitle'
+import { TopBar } from '../../components/TopBar'
+import { href } from '../../router'
+import { starterRecipes } from '../../seed'
+import { useStore } from '../../store'
+import { supabase } from '../../supabase'
+import type { Recipe } from '../../types'
+import s from './index.module.css'
 
 const SYNC_LABEL = { local: 'Local only (Supabase not configured)', synced: 'Synced', syncing: 'Syncing…', pending: 'Waiting to sync' }
 
@@ -35,50 +42,39 @@ export function Settings() {
   }
 
   return (
-    <div className="page">
-      <header className="bar">
-        <a className="iconbtn" href={href({ name: 'list' })} aria-label="Back">
-          <Icon name="back" />
-        </a>
-        <span className="bar-title">Settings</span>
-        <span className="iconbtn" />
-      </header>
+    <Page>
+      <TopBar start={<IconButton icon="back" label="Back" href={href({ name: 'list' })} />} title="Settings" />
 
-      <h2 className="sechead">Account</h2>
-      <section className="card form">
+      <SectionTitle>Account</SectionTitle>
+      <Card>
         {email && (
-          <div className="row">
-            <span className="label">Signed in as</span>
-            <span className="out small">{email}</span>
-          </div>
+          <Row label="Signed in as">
+            <RowValue muted>{email}</RowValue>
+          </Row>
         )}
-        <div className="row">
-          <span className="label">Sync</span>
-          <span className="out small">{SYNC_LABEL[sync]}</span>
-        </div>
+        <Row label="Sync">
+          <RowValue muted>{SYNC_LABEL[sync]}</RowValue>
+        </Row>
         {supabase && (
-          <div className="row">
-            <button className="textbtn" onClick={refresh}>
-              Sync now
-            </button>
-            <span className="grow" />
-            <button className="textbtn danger" onClick={() => confirm('Sign out on this device?') && signOut()}>
+          <Row className={s.split}>
+            <TextButton onClick={refresh}>Sync now</TextButton>
+            <TextButton danger onClick={() => confirm('Sign out on this device?') && signOut()}>
               Sign out
-            </button>
-          </div>
+            </TextButton>
+          </Row>
         )}
-      </section>
+      </Card>
 
-      <h2 className="sechead">Backup</h2>
-      <section className="card form">
-        <button className="rowbtn" onClick={exportJson}>
+      <SectionTitle>Backup</SectionTitle>
+      <Card>
+        <button className={s.rowButton} onClick={exportJson}>
           Export recipes (JSON)
         </button>
-        <button className="rowbtn" onClick={() => file.current?.click()}>
+        <button className={s.rowButton} onClick={() => file.current?.click()}>
           Import from file…
         </button>
         <button
-          className="rowbtn"
+          className={s.rowButton}
           onClick={() => {
             if (!confirm('Replace all recipes with the starter recipes?')) return
             recipes.forEach((r) => remove(r.id))
@@ -89,8 +85,8 @@ export function Settings() {
           Reset to starter recipes
         </button>
         <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
-        {msg && <p className="hint">{msg}</p>}
-      </section>
-    </div>
+        {msg && <Hint>{msg}</Hint>}
+      </Card>
+    </Page>
   )
 }

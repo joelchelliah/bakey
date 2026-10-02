@@ -1,0 +1,15 @@
+.add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-weight: 600;
+  padding: 14px;
+  width: 100%;
+}
+.standalone {
+  justify-content: center;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}

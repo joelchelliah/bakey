@@ -1,0 +1,24 @@
+.segmented {
+  display: flex;
+  background: var(--line);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 2px;
+}
+.segmented button {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--muted);
+}
+.segmented button[aria-selected='true'] {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+}
+.small button {
+  font-size: 14px;
+  padding: 7px 4px;
+}

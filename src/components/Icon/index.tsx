@@ -12,7 +12,14 @@ const paths = {
   x: 'M18 6L6 18M6 6l12 12',
 } as const
 
-export function Icon({ name, size = 22 }: { name: keyof typeof paths; size?: number }) {
+export type IconName = keyof typeof paths
+
+interface IconProps {
+  name: IconName
+  size?: number
+}
+
+export function Icon({ name, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={name === 'more' ? 3.5 : 2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d={paths[name]} />

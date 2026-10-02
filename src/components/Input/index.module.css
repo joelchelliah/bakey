@@ -1,0 +1,24 @@
+/* 16px+ prevents iOS from zooming into focused fields */
+.field {
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 9px 10px;
+  font-size: 16px;
+  outline: none;
+  min-width: 0;
+}
+.field:focus {
+  border-color: var(--accent);
+}
+
+.input {
+  flex: 1;
+}
+
+.textarea {
+  width: calc(100% - 24px);
+  margin: 12px;
+  display: block;
+  resize: vertical;
+}

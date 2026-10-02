@@ -1,0 +1,84 @@
+.brand {
+  font-weight: 800;
+  font-size: 28px;
+  padding-left: 8px;
+  letter-spacing: -0.02em;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--warn-bg);
+  color: var(--muted);
+}
+
+.list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.list li + li {
+  border-top: 1px solid var(--line);
+}
+.list a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  min-height: 64px;
+}
+.list a:active {
+  background: var(--accent-soft);
+}
+.list small {
+  color: var(--muted);
+  font-size: 14px;
+}
+.list svg {
+  transform: rotate(180deg);
+  color: var(--muted);
+  flex: none;
+}
+
+.emoji {
+  font-size: 30px;
+  width: 40px;
+  text-align: center;
+}
+.text {
+  flex: 1;
+  min-width: 0;
+}
+.name {
+  display: block;
+  font-weight: 600;
+}
+
+.empty {
+  text-align: center;
+  padding: 64px 0;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  color: var(--muted);
+}
+
+.fab {
+  position: fixed;
+  right: max(20px, calc(50% - 260px));
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.22);
+}
