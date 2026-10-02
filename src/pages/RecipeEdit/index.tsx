@@ -12,7 +12,7 @@ import { useStore } from '../../storeContext'
 import type { Recipe, Section, Variant } from '../../types'
 import { clone, uid } from '../../util'
 import { AddButton } from './AddButton'
-import { copyVariant, moveIngredient } from './recipe'
+import { copyVariant, moveIngredient, moveSection } from './recipe'
 import { ScalingCard } from './ScalingCard'
 import { SectionCard } from './SectionCard'
 import { VariantPicker } from './VariantPicker'
@@ -133,7 +133,10 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
           allIngredients={allIngs}
           modifierEnabled={r.modifierEnabled}
           onChange={(fn) => setSection(sec.id, fn)}
-          onMove={(iid, dir) => setVariant((v) => moveIngredient(v, sec.id, iid, dir))}
+          onMoveIngredient={(iid, dir) => setVariant((v) => moveIngredient(v, sec.id, iid, dir))}
+          onMove={(dir) => setVariant((v) => moveSection(v, sec.id, dir))}
+          canMoveUp={si > 0}
+          canMoveDown={si < variant.sections.length - 1}
           onDelete={() =>
             setVariant((v) => ({
               ...v,

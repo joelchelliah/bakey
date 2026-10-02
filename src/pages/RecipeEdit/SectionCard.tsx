@@ -17,7 +17,11 @@ interface SectionCardProps {
   allIngredients: Ingredient[]
   modifierEnabled: boolean
   onChange: (fn: (s: Section) => Section) => void
-  onMove: (ingredientId: string, dir: -1 | 1) => void
+  onMoveIngredient: (ingredientId: string, dir: -1 | 1) => void
+  /** Moves the whole section up or down. */
+  onMove: (dir: -1 | 1) => void
+  canMoveUp: boolean
+  canMoveDown: boolean
   onDelete: () => void
 }
 
@@ -29,7 +33,10 @@ export function SectionCard({
   allIngredients,
   modifierEnabled,
   onChange,
+  onMoveIngredient,
   onMove,
+  canMoveUp,
+  canMoveDown,
   onDelete,
 }: SectionCardProps) {
   const setIng = (iid: string, patch: Partial<Ingredient>) =>
@@ -46,6 +53,14 @@ export function SectionCard({
             placeholder={namePlaceholder}
             value={section.name}
             onChange={(e) => onChange((x) => ({ ...x, name: e.target.value }))}
+          />
+          <IconButton icon="up" size={18} label="Move section up" disabled={!canMoveUp} onClick={() => onMove(-1)} />
+          <IconButton
+            icon="down"
+            size={18}
+            label="Move section down"
+            disabled={!canMoveDown}
+            onClick={() => onMove(1)}
           />
           <IconButton
             icon="trash"
@@ -66,7 +81,7 @@ export function SectionCard({
           others={allIngredients.filter((x) => x.id !== ing.id)}
           modifierEnabled={modifierEnabled}
           onChange={(patch) => setIng(ing.id, patch)}
-          onMove={(d) => onMove(ing.id, d)}
+          onMove={(d) => onMoveIngredient(ing.id, d)}
           onDelete={() =>
             onChange((x) => ({
               ...x,

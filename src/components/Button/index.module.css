@@ -7,8 +7,11 @@
   color: var(--muted);
   flex: none;
 }
-.icon:active {
+.icon:active:not(:disabled) {
   background: var(--accent-soft);
+}
+.icon:disabled {
+  opacity: 0.3;
 }
 
 .text {

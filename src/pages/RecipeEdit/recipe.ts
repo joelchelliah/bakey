@@ -97,3 +97,14 @@ export function moveIngredient(v: Variant, sid: string, iid: string, dir: -1 | 1
 
   return { ...v, sections }
 }
+
+/** Swaps a section with its neighbour. */
+export function moveSection(v: Variant, sid: string, dir: -1 | 1): Variant {
+  const sections = [...v.sections]
+  const si = sections.findIndex((s) => s.id === sid)
+  const to = si + dir
+
+  if (si < 0 || to < 0 || to >= sections.length) return v
+  ;[sections[si], sections[to]] = [sections[to], sections[si]]
+  return { ...v, sections }
+}
