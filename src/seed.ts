@@ -60,9 +60,9 @@ export function starterRecipes(): Recipe[] {
       emoji: '🍕',
       mode: 'portions',
       portions: 6,
-      portionSize: 200,
+      portionSize: 210,
       variants: [
-        variant('Standard', 72, (k) => [
+        variant('Regular', 72, (k) => [
           section('', [
             ['Wheat flour', 'flour', pct(30)],
             ['Pizza flour', 'flour', pct(60)],
@@ -74,15 +74,6 @@ export function starterRecipes(): Recipe[] {
             ['Sugar', 'other', pct(1)],
           ], k),
         ]),
-      ],
-    }),
-    recipe({
-      name: 'Pizza – Poolish',
-      emoji: '🍕',
-      mode: 'portions',
-      portions: 6,
-      portionSize: 210,
-      variants: [
         variant('Poolish', 72, (k) => [
           section('Poolish', [
             ['Poolish flour', 'flour', pct(30), { key: 'pf' }],

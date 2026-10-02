@@ -9,7 +9,7 @@ import type { Recipe } from '../types'
 const SYNC_LABEL = { local: 'Local only (Supabase not configured)', synced: 'Synced', syncing: 'Syncing…', pending: 'Waiting to sync' }
 
 export function Settings() {
-  const { recipes, addMany, email, sync, signOut, refresh } = useStore()
+  const { recipes, addMany, remove, email, sync, signOut, refresh } = useStore()
   const file = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState('')
 
@@ -80,11 +80,13 @@ export function Settings() {
         <button
           className="rowbtn"
           onClick={() => {
+            if (!confirm('Replace all recipes with the starter recipes?')) return
+            recipes.forEach((r) => remove(r.id))
             addMany(starterRecipes())
-            setMsg('Starter recipes added.')
+            setMsg('Starter recipes restored.')
           }}
         >
-          Add starter recipes
+          Reset to starter recipes
         </button>
         <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
         {msg && <p className="hint">{msg}</p>}

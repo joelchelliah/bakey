@@ -82,7 +82,7 @@ The source Numbers files are in `examples_and_inspiration/`. To read cells, form
 
 | Recipe | Expected |
 | --- | --- |
-| Pizza (6 × 200 g, 72% hydration) | Σ 175.3%, whole wheat 68.45 g, water 479.18 g |
+| Pizza – Regular (6 × 210 g, 72% hydration) | Σ 175.3%, whole wheat 71.87 g, water 503.14 g |
 | Pizza – Poolish (6 × 210 g) | Σ 175.15%, poolish flour/water 215.82 g, remaining water 287.75 g, poolish subtotal 431.63 g |
 | Seeded (2200 g) | base 1132.56 g, spelt 158.56 g |
 | Pan de Coco regular (1400 g) | Σ 204.5%, coconut milk 547.68 g |

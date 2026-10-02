@@ -61,28 +61,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const flush = useCallback(async () => {
     if (!supabase || !session || flushing.current) return
-    const ids = Object.keys(pending.current)
-    if (!ids.length) return setSync('synced')
+    if (!Object.keys(pending.current).length) return setSync('synced')
     flushing.current = true
     setSync('syncing')
     try {
-      for (const id of ids) {
-        const op = pending.current[id]
-        if (op === 'delete') {
-          const { error } = await supabase.from('recipes').delete().eq('id', id)
-          if (error) throw error
-        } else {
-          const r = recipesRef.current.find((x) => x.id === id)
-          if (r) {
-            const { error } = await supabase
-              .from('recipes')
-              .upsert({ id, user_id: session.user.id, data: r, updated_at: r.updatedAt })
+      // re-read each round so ops queued while flushing are sent too
+      let ids: string[]
+      while ((ids = Object.keys(pending.current)).length) {
+        for (const id of ids) {
+          const op = pending.current[id]
+          if (op === 'delete') {
+            const { error } = await supabase.from('recipes').delete().eq('id', id)
             if (error) throw error
+          } else {
+            const r = recipesRef.current.find((x) => x.id === id)
+            if (r) {
+              const { error } = await supabase
+                .from('recipes')
+                .upsert({ id, user_id: session.user.id, data: r, updated_at: r.updatedAt })
+              if (error) throw error
+            }
           }
+          // only clear if nothing newer was queued meanwhile
+          if (pending.current[id] === op) delete pending.current[id]
+          writeJson(PENDING_KEY, pending.current)
         }
-        // only clear if nothing newer was queued meanwhile
-        if (pending.current[id] === op) delete pending.current[id]
-        writeJson(PENDING_KEY, pending.current)
       }
       setSync(Object.keys(pending.current).length ? 'pending' : 'synced')
     } catch (e) {
