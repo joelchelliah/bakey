@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { readAuthLog } from '../../authLog'
 import { IconButton, TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Hint } from '../../components/Hint'
@@ -91,6 +92,17 @@ export function Settings() {
           }}
         >
           Reset to starter recipes
+        </button>
+        <button
+          className={s.rowButton}
+          onClick={() =>
+            navigator.clipboard.writeText(readAuthLog()).then(
+              () => setMsg('Auth log copied.'),
+              (e: Error) => setMsg(`Copy failed: ${e.message}`),
+            )
+          }
+        >
+          Copy auth log
         </button>
         <input
           ref={file}

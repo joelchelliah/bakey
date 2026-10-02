@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import { authLog } from './authLog'
 import { supabase } from './supabase'
 import { StoreContext, type AuthState, type Store, type SyncState } from './storeContext'
 import type { Recipe } from './types'
@@ -106,11 +107,13 @@ export function StoreProvider({ children }: StoreProviderProps) {
   // Auth
   useEffect(() => {
     if (!supabase) return
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data, error }) => {
+      authLog(`APP getSession -> ${data.session ? 'session' : 'null'}`, error?.message ?? '')
       setSession(data.session)
       setAuth(data.session ? 'signedIn' : 'signedOut')
     })
-    const { data } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      authLog(`APP event ${event} -> ${s ? 'session' : 'null'}`)
       setSession(s)
       setAuth(s ? 'signedIn' : 'signedOut')
     })
