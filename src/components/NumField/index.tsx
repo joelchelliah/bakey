@@ -19,7 +19,17 @@ interface NumFieldProps {
 const show = (n: number) => (Number.isFinite(n) ? String(Math.round(n * 10000) / 10000) : '')
 
 /** Number input that tolerates partial input ("0," / "-") while typing and accepts comma decimals. */
-export function NumField({ value, onChange, suffix, step = 1, stepper, min, narrow, ariaLabel, placeholder }: NumFieldProps) {
+export function NumField({
+  value,
+  onChange,
+  suffix,
+  step = 1,
+  stepper,
+  min,
+  narrow,
+  ariaLabel,
+  placeholder,
+}: NumFieldProps) {
   const [text, setText] = useState(show(value))
   const focused = useRef(false)
 

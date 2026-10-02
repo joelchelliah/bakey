@@ -14,7 +14,17 @@ A mobile-first PWA recipe book that uses baker's percentages. It replaces a set 
 npm run dev      # dev server
 npm run build    # tsc -b && vite build (also the typecheck)
 npm run preview  # serve the build on :4173
+npm run lint     # oxlint (config in .oxlintrc.json)
+npm run lint:fix # oxlint with safe autofixes
+npm run format   # oxfmt (config in .oxfmtrc.json): single quotes, no semicolons, 120 columns
+npm run format:check
+npm run typecheck # tsc -b
+npm run check    # lint:fix, then format, then typecheck
 ```
+
+**After every completed feature, run `npm run check` and make sure it passes before handing over to the user for verification.** If it fails, fix the cause; don't silence rules to get it green unless the rule is genuinely wrong for that line, in which case use a one-line `oxlint-disable-next-line <rule> -- <reason>`.
+
+Linting uses Oxlint, not ESLint: typescript-eslint doesn't support TypeScript 7. Formatting uses oxfmt, not Prettier. Markdown is not formatted.
 
 ## Testing policy
 
@@ -29,7 +39,8 @@ To verify calculations, use the reference values in [Original sheets](#original-
 | `src/types.ts` | Data model (`Recipe`, `Variant`, `Section`, `Ingredient`, `Amount`). Percentages are in percent units (72 = 72%). |
 | `src/calc.ts` | Pure calculation engine (`computeVariant`) plus number formatting and parsing. |
 | `src/seed.ts` | Starter recipes converted from the original Numbers sheets. |
-| `src/store.tsx` | React context: recipes, auth, a localStorage cache, the offline write queue and Supabase sync. |
+| `src/store.tsx` | `StoreProvider`: recipes, auth, a localStorage cache, the offline write queue and Supabase sync. |
+| `src/storeContext.ts` | The `Store` interface, its context and `useStore()`. Kept out of `store.tsx` so that file only exports components (Fast Refresh). |
 | `src/supabase.ts` | Supabase client. It is `null` when env vars are missing, which puts the app in local-only mode with no login. |
 | `src/styles/tokens.css` | Colour, radius and font tokens as CSS custom properties. The only place colours are defined. |
 | `src/styles/global.css` | Reset and `body` styles. The only global CSS besides tokens. |

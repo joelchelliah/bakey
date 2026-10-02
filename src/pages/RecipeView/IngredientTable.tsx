@@ -27,14 +27,14 @@ export function IngredientTable({ recipe, variant, res, checked, onToggle }: Ing
       </div>
       {variant.sections.map((sec) => {
         const rows = res.rows.filter((r) => r.sectionId === sec.id)
-        const sres = res.sections.find((x) => x.id === sec.id)!
+        const sres = res.sections.find((x) => x.id === sec.id)
         return (
           <div key={sec.id}>
             {namedSections && (
               <div className={cx(s.row, s.sub)}>
                 <span>{sec.name || 'Dough'}</span>
                 <span />
-                <span>{fmtWeight(sres.weight)}</span>
+                <span>{sres && fmtWeight(sres.weight)}</span>
               </div>
             )}
             {rows.map((r) => {

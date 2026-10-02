@@ -51,13 +51,27 @@ export function ScalingCard({ r, set, anchorOptions }: ScalingCardProps) {
               <Input
                 placeholder="Set-aside portion (e.g. 👶 Baby)"
                 value={a.label}
-                onChange={(e) => set({ setAsides: setAsides.map((x) => (x.id === a.id ? { ...x, label: e.target.value } : x)) })}
+                onChange={(e) =>
+                  set({ setAsides: setAsides.map((x) => (x.id === a.id ? { ...x, label: e.target.value } : x)) })
+                }
               />
-              <NumField value={a.weight} suffix="g" onChange={(n) => set({ setAsides: setAsides.map((x) => (x.id === a.id ? { ...x, weight: n } : x)) })} />
-              <IconButton icon="x" size={18} danger label="Remove set-aside" onClick={() => set({ setAsides: setAsides.filter((x) => x.id !== a.id) })} />
+              <NumField
+                value={a.weight}
+                suffix="g"
+                onChange={(n) => set({ setAsides: setAsides.map((x) => (x.id === a.id ? { ...x, weight: n } : x)) })}
+              />
+              <IconButton
+                icon="x"
+                size={18}
+                danger
+                label="Remove set-aside"
+                onClick={() => set({ setAsides: setAsides.filter((x) => x.id !== a.id) })}
+              />
             </Row>
           ))}
-          <AddButton onClick={() => set({ setAsides: [...setAsides, { id: uid(), label: '', weight: 100 }] })}>Set-aside portion</AddButton>
+          <AddButton onClick={() => set({ setAsides: [...setAsides, { id: uid(), label: '', weight: 100 }] })}>
+            Set-aside portion
+          </AddButton>
         </>
       )}
       <Row as="label" label="Modifier" sub="± % on selected ingredients">

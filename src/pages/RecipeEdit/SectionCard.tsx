@@ -1,24 +1,24 @@
-import { IconButton } from "../../components/Button";
-import { Card } from "../../components/Card";
-import { Input } from "../../components/Input";
-import { Row } from "../../components/Row";
-import type { Ingredient, Section } from "../../types";
-import { uid } from "../../util";
-import { AddButton } from "./AddButton";
-import { IngredientEditor } from "./IngredientEditor";
-import s from "./SectionCard.module.css";
+import { IconButton } from '../../components/Button'
+import { Card } from '../../components/Card'
+import { Input } from '../../components/Input'
+import { Row } from '../../components/Row'
+import type { Ingredient, Section } from '../../types'
+import { uid } from '../../util'
+import { AddButton } from './AddButton'
+import { IngredientEditor } from './IngredientEditor'
+import s from './SectionCard.module.css'
 
 interface SectionCardProps {
-  section: Section;
+  section: Section
   /** Show the name row (always when there are several sections). */
-  showName: boolean;
-  namePlaceholder: string;
-  pctById: Map<string, number | null>;
-  allIngredients: Ingredient[];
-  modifierEnabled: boolean;
-  onChange: (fn: (s: Section) => Section) => void;
-  onMove: (ingredientId: string, dir: -1 | 1) => void;
-  onDelete: () => void;
+  showName: boolean
+  namePlaceholder: string
+  pctById: Map<string, number | null>
+  allIngredients: Ingredient[]
+  modifierEnabled: boolean
+  onChange: (fn: (s: Section) => Section) => void
+  onMove: (ingredientId: string, dir: -1 | 1) => void
+  onDelete: () => void
 }
 
 export function SectionCard({
@@ -35,10 +35,8 @@ export function SectionCard({
   const setIng = (iid: string, patch: Partial<Ingredient>) =>
     onChange((x) => ({
       ...x,
-      ingredients: x.ingredients.map((i) =>
-        i.id === iid ? { ...i, ...patch } : i,
-      ),
-    }));
+      ingredients: x.ingredients.map((i) => (i.id === iid ? { ...i, ...patch } : i)),
+    }))
 
   return (
     <Card>
@@ -55,9 +53,7 @@ export function SectionCard({
             danger
             label="Delete section"
             onClick={() =>
-              (!section.ingredients.length ||
-                confirm("Delete this section and its ingredients?")) &&
-              onDelete()
+              (!section.ingredients.length || confirm('Delete this section and its ingredients?')) && onDelete()
             }
           />
         </Row>
@@ -87,9 +83,9 @@ export function SectionCard({
               ...x.ingredients,
               {
                 id: uid(),
-                name: "",
-                group: "other",
-                amount: { kind: "percent", value: 0 },
+                name: '',
+                group: 'other',
+                amount: { kind: 'percent', value: 0 },
               },
             ],
           }))
@@ -98,5 +94,5 @@ export function SectionCard({
         Ingredient
       </AddButton>
     </Card>
-  );
+  )
 }

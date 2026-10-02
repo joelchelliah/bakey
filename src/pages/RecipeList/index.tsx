@@ -4,7 +4,7 @@ import { Page } from '../../components/Page'
 import { TopBar } from '../../components/TopBar'
 import { href } from '../../router'
 import { starterRecipes } from '../../seed'
-import { useStore } from '../../store'
+import { useStore } from '../../storeContext'
 import s from './index.module.css'
 
 export function RecipeList() {

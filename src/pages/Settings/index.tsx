@@ -8,12 +8,17 @@ import { SectionTitle } from '../../components/SectionTitle'
 import { TopBar } from '../../components/TopBar'
 import { href } from '../../router'
 import { starterRecipes } from '../../seed'
-import { useStore } from '../../store'
+import { useStore } from '../../storeContext'
 import { supabase } from '../../supabase'
 import type { Recipe } from '../../types'
 import s from './index.module.css'
 
-const SYNC_LABEL = { local: 'Local only (Supabase not configured)', synced: 'Synced', syncing: 'Syncing…', pending: 'Waiting to sync' }
+const SYNC_LABEL = {
+  local: 'Local only (Supabase not configured)',
+  synced: 'Synced',
+  syncing: 'Syncing…',
+  pending: 'Waiting to sync',
+}
 
 export function Settings() {
   const { recipes, addMany, remove, email, sync, signOut, refresh } = useStore()
@@ -21,7 +26,9 @@ export function Settings() {
   const [msg, setMsg] = useState('')
 
   const exportJson = () => {
-    const blob = new Blob([JSON.stringify({ app: 'bakey', version: 1, recipes }, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify({ app: 'bakey', version: 1, recipes }, null, 2)], {
+      type: 'application/json',
+    })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = `bakey-recipes-${new Date().toISOString().slice(0, 10)}.json`
@@ -33,7 +40,8 @@ export function Settings() {
     try {
       const parsed = JSON.parse(await f.text())
       const list: Recipe[] = Array.isArray(parsed) ? parsed : parsed.recipes
-      if (!Array.isArray(list) || !list.every((r) => r.id && Array.isArray(r.variants))) throw new Error('Not a Bakey export')
+      if (!Array.isArray(list) || !list.every((r) => r.id && Array.isArray(r.variants)))
+        throw new Error('Not a Bakey export')
       addMany(list)
       setMsg(`Imported ${list.length} recipe${list.length === 1 ? '' : 's'}.`)
     } catch (e) {
@@ -84,7 +92,13 @@ export function Settings() {
         >
           Reset to starter recipes
         </button>
-        <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
+        <input
+          ref={file}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])}
+        />
         {msg && <Hint>{msg}</Hint>}
       </Card>
     </Page>

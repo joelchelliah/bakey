@@ -5,7 +5,11 @@ import { StoreProvider } from './store'
 import './styles/tokens.css'
 import './styles/global.css'
 
-createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root')
+
+if (!root) throw new Error('#root missing')
+
+createRoot(root).render(
   <StrictMode>
     <StoreProvider>
       <App />

@@ -1,0 +1,19 @@
+{
+  // Format with oxfmt (.oxfmtrc.json), lint-fix with oxlint (.oxlintrc.json)
+  "[javascript]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[javascriptreact]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[typescript]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[typescriptreact]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[json]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[jsonc]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[css]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[markdown]": { "editor.formatOnSave": false },
+  "prettier.enable": false,
+
+  "eslint.enable": false,
+  "oxc.enable": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "explicit",
+    "source.fixAll.eslint": "never"
+  }
+}

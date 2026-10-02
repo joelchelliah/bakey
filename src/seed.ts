@@ -9,7 +9,9 @@ type AmountSpec = Amount | ((keys: Record<string, string>) => Amount)
 type IngSpec = [name: string, group: Group, amount: AmountSpec, opts?: { modified?: boolean; key?: string }]
 
 /** Percentage of an earlier ingredient (referenced by its key). */
-const of = (key: string, factor: number) => (k: Record<string, string>): Amount => ({ kind: 'relative', of: k[key], factor })
+const of =
+  (key: string, factor: number) =>
+  (k: Record<string, string>): Amount => ({ kind: 'relative', of: k[key], factor })
 
 function section(name: string, specs: IngSpec[], keys: Record<string, string>): Section {
   return {
@@ -18,13 +20,23 @@ function section(name: string, specs: IngSpec[], keys: Record<string, string>): 
     ingredients: specs.map(([n, group, amount, opts]): Ingredient => {
       const id = uid()
       if (opts?.key) keys[opts.key] = id
-      return { id, name: n, group, amount: typeof amount === 'function' ? amount(keys) : amount, modified: opts?.modified }
+      return {
+        id,
+        name: n,
+        group,
+        amount: typeof amount === 'function' ? amount(keys) : amount,
+        modified: opts?.modified,
+      }
     }),
   }
 }
 
 /** Build a variant; relative amounts reference keys defined earlier via `of(key, factor)`. */
-function variant(name: string, hydration: number | undefined, build: (keys: Record<string, string>) => Section[]): Variant {
+function variant(
+  name: string,
+  hydration: number | undefined,
+  build: (keys: Record<string, string>) => Section[],
+): Variant {
   const keys: Record<string, string> = {}
   return { id: uid(), name, hydration, sections: build(keys) }
 }
@@ -63,31 +75,43 @@ export function starterRecipes(): Recipe[] {
       portionSize: 210,
       variants: [
         variant('Regular', 72, (k) => [
-          section('', [
-            ['Wheat flour', 'flour', pct(30)],
-            ['Pizza flour', 'flour', pct(60)],
-            ['Whole wheat flour', 'flour', rem],
-            ['Salt', 'other', pct(2)],
-            ['Yeast', 'other', pct(0.3)],
-            ['Olive oil', 'liquid', pct(2)],
-            ['Water', 'liquid', rem],
-            ['Sugar', 'other', pct(1)],
-          ], k),
+          section(
+            '',
+            [
+              ['Wheat flour', 'flour', pct(30)],
+              ['Pizza flour', 'flour', pct(60)],
+              ['Whole wheat flour', 'flour', rem],
+              ['Salt', 'other', pct(2)],
+              ['Yeast', 'other', pct(0.3)],
+              ['Olive oil', 'liquid', pct(2)],
+              ['Water', 'liquid', rem],
+              ['Sugar', 'other', pct(1)],
+            ],
+            k,
+          ),
         ]),
         variant('Poolish', 72, (k) => [
-          section('Poolish', [
-            ['Poolish flour', 'flour', pct(30), { key: 'pf' }],
-            ['Poolish water', 'liquid', of('pf', 100)],
-          ], k),
-          section('Dough', [
-            ['Pizza flour', 'flour', pct(60)],
-            ['Whole wheat flour', 'flour', rem],
-            ['Salt', 'other', pct(2)],
-            ['Yeast', 'other', pct(0.15)],
-            ['Olive oil', 'liquid', pct(2)],
-            ['Remaining water', 'liquid', rem],
-            ['Sugar', 'other', pct(1)],
-          ], k),
+          section(
+            'Poolish',
+            [
+              ['Poolish flour', 'flour', pct(30), { key: 'pf' }],
+              ['Poolish water', 'liquid', of('pf', 100)],
+            ],
+            k,
+          ),
+          section(
+            'Dough',
+            [
+              ['Pizza flour', 'flour', pct(60)],
+              ['Whole wheat flour', 'flour', rem],
+              ['Salt', 'other', pct(2)],
+              ['Yeast', 'other', pct(0.15)],
+              ['Olive oil', 'liquid', pct(2)],
+              ['Remaining water', 'liquid', rem],
+              ['Sugar', 'other', pct(1)],
+            ],
+            k,
+          ),
         ]),
       ],
     }),
@@ -99,14 +123,18 @@ export function starterRecipes(): Recipe[] {
       notes: breadNotes('750 g – 18 / 10\n1000 g – 23 / 10\n1200 g – 26 / 10'),
       variants: [
         variant('Standard', undefined, (k) => [
-          section('', [
-            ['Flour', 'flour', pct(86)],
-            ['Spelt', 'flour', rem],
-            ['Water', 'liquid', pct(80)],
-            ['Seeds', 'other', pct(12)],
-            ['Yeast', 'other', pct(0.25)],
-            ['Salt', 'other', pct(2)],
-          ], k),
+          section(
+            '',
+            [
+              ['Flour', 'flour', pct(86)],
+              ['Spelt', 'flour', rem],
+              ['Water', 'liquid', pct(80)],
+              ['Seeds', 'other', pct(12)],
+              ['Yeast', 'other', pct(0.25)],
+              ['Salt', 'other', pct(2)],
+            ],
+            k,
+          ),
         ]),
       ],
     }),
@@ -118,14 +146,18 @@ export function starterRecipes(): Recipe[] {
       notes: breadNotes('750 g – 18 / 10\n1000 g – 24 / 10\n1200 g – 28 / 10\n1400 g – 33 / 10'),
       variants: [
         variant('Standard', undefined, (k) => [
-          section('', [
-            ['Flour', 'flour', pct(86)],
-            ['Spelt', 'flour', rem],
-            ['Water', 'liquid', pct(80)],
-            ['Spices', 'other', pct(5)],
-            ['Yeast', 'other', pct(0.3)],
-            ['Salt', 'other', pct(2)],
-          ], k),
+          section(
+            '',
+            [
+              ['Flour', 'flour', pct(86)],
+              ['Spelt', 'flour', rem],
+              ['Water', 'liquid', pct(80)],
+              ['Spices', 'other', pct(5)],
+              ['Yeast', 'other', pct(0.3)],
+              ['Salt', 'other', pct(2)],
+            ],
+            k,
+          ),
         ]),
       ],
     }),
@@ -136,30 +168,42 @@ export function starterRecipes(): Recipe[] {
       totalWeight: 1400,
       variants: [
         variant('Regular', 80, (k) => [
-          section('', [
-            ['Flour', 'flour', pct(100)],
-            ['Coconut milk', 'liquid', rem],
-            ['Sugar', 'other', pct(5)],
-            ['Salt', 'other', pct(2)],
-            ['Yeast', 'other', pct(0.5)],
-            ['Butter', 'other', pct(5)],
-            ['Coconut flakes', 'other', pct(12)],
-          ], k),
+          section(
+            '',
+            [
+              ['Flour', 'flour', pct(100)],
+              ['Coconut milk', 'liquid', rem],
+              ['Sugar', 'other', pct(5)],
+              ['Salt', 'other', pct(2)],
+              ['Yeast', 'other', pct(0.5)],
+              ['Butter', 'other', pct(5)],
+              ['Coconut flakes', 'other', pct(12)],
+            ],
+            k,
+          ),
         ]),
         variant('Tangzhong', 90, (k) => [
-          section('Roux', [
-            ['Roux flour', 'flour', pct(5)],
-            ['Roux liquid', 'liquid', pct(25)],
-          ], k),
-          section('Dough', [
-            ['Flour', 'flour', rem],
-            ['Coconut milk', 'liquid', rem],
-            ['Sugar', 'other', pct(5)],
-            ['Salt', 'other', pct(2)],
-            ['Yeast', 'other', pct(0.5)],
-            ['Butter', 'other', pct(5)],
-            ['Coconut flakes', 'other', pct(10)],
-          ], k),
+          section(
+            'Roux',
+            [
+              ['Roux flour', 'flour', pct(5)],
+              ['Roux liquid', 'liquid', pct(25)],
+            ],
+            k,
+          ),
+          section(
+            'Dough',
+            [
+              ['Flour', 'flour', rem],
+              ['Coconut milk', 'liquid', rem],
+              ['Sugar', 'other', pct(5)],
+              ['Salt', 'other', pct(2)],
+              ['Yeast', 'other', pct(0.5)],
+              ['Butter', 'other', pct(5)],
+              ['Coconut flakes', 'other', pct(10)],
+            ],
+            k,
+          ),
         ]),
       ],
     }),
@@ -173,15 +217,19 @@ export function starterRecipes(): Recipe[] {
       showPortions: true,
       variants: [
         variant('Standard', undefined, (k) => [
-          section('', [
-            ['Eggs', 'other', pct(100), { key: 'eggs' }],
-            ['Milk', 'liquid', pct(120)],
-            ['Flour', 'flour', pct(100)],
-            ['Butter / oil', 'other', pct(45)],
-            ['Sugar', 'other', pct(20)],
-            ['Baking powder', 'other', of('eggs', 12.5)],
-            ['Salt / vanilla', 'other', taste],
-          ], k),
+          section(
+            '',
+            [
+              ['Eggs', 'other', pct(100), { key: 'eggs' }],
+              ['Milk', 'liquid', pct(120)],
+              ['Flour', 'flour', pct(100)],
+              ['Butter / oil', 'other', pct(45)],
+              ['Sugar', 'other', pct(20)],
+              ['Baking powder', 'other', of('eggs', 12.5)],
+              ['Salt / vanilla', 'other', taste],
+            ],
+            k,
+          ),
         ]),
       ],
     }),
@@ -199,12 +247,16 @@ export function starterRecipes(): Recipe[] {
       notes: 'Modify to make the portion size:\n\n- Big pan: 85–90\n- Crêpe pan: 75–80',
       variants: [
         variant('Standard', undefined, (k) => [
-          section('', [
-            ['Eggs', 'other', pct(100)],
-            ['Milk / Stock', 'liquid', pct(90), { modified: true }],
-            ['Flour', 'flour', pct(60), { modified: true }],
-            ['Salt / sugar / vanilla', 'other', taste],
-          ], k),
+          section(
+            '',
+            [
+              ['Eggs', 'other', pct(100)],
+              ['Milk / Stock', 'liquid', pct(90), { modified: true }],
+              ['Flour', 'flour', pct(60), { modified: true }],
+              ['Salt / sugar / vanilla', 'other', taste],
+            ],
+            k,
+          ),
         ]),
       ],
     }),

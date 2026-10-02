@@ -43,10 +43,12 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
   const pctCache = new Map<string, number | null>()
   const visiting = new Set<string>()
 
-  const target = (ing: Ingredient) => (ing.group === 'flour' ? 100 : ing.group === 'liquid' ? (v.hydration ?? NaN) : NaN)
+  const target = (ing: Ingredient) =>
+    ing.group === 'flour' ? 100 : ing.group === 'liquid' ? (v.hydration ?? NaN) : NaN
 
   const pctOf = (ing: Ingredient): number | null => {
-    if (pctCache.has(ing.id)) return pctCache.get(ing.id)!
+    const cached = pctCache.get(ing.id)
+    if (cached !== undefined) return cached
     if (visiting.has(ing.id)) {
       errors.push(`Circular reference involving "${ing.name}"`)
       return NaN
@@ -89,7 +91,8 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
           sum += pctOf(o) ?? 0
         }
         p = t - sum
-        if (p < 0) errors.push(`"${ing.name}" is negative (${round(p, 2)}%) — the ${ing.group} group exceeds its target`)
+        if (p < 0)
+          errors.push(`"${ing.name}" is negative (${round(p, 2)}%) — the ${ing.group} group exceeds its target`)
         break
       }
     }
@@ -133,7 +136,14 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
     weight: rows.filter((r) => r.sectionId === s.id).reduce((t, r) => t + (r.weight ?? 0), 0),
   }))
 
-  const result: VariantResult = { rows, sections, totalPct, totalWeight, base, errors: [...new Set(errors)] }
+  const result: VariantResult = {
+    rows,
+    sections,
+    totalPct,
+    totalWeight,
+    base,
+    errors: [...new Set(errors)],
+  }
   const hasPortions = recipe.mode === 'portions' || recipe.showPortions
   if (hasPortions && recipe.portions > 0) {
     result.portionSize = totalWeight / recipe.portions
@@ -167,6 +177,6 @@ export function fmtPct(p: number | null): string {
 
 /** Parses user input, accepting both comma and dot as decimal separator. */
 export function parseNum(s: string): number {
-  const n = parseFloat(s.replace(',', '.').replace(/[^\d.\-]/g, ''))
+  const n = parseFloat(s.replace(',', '.').replace(/[^\d.-]/g, ''))
   return Number.isFinite(n) ? n : 0
 }

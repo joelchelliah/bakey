@@ -1,30 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import { StoreContext, type AuthState, type Store, type SyncState } from './storeContext'
 import type { Recipe } from './types'
 
 const CACHE_KEY = 'bakey.recipes.v1'
 const PENDING_KEY = 'bakey.pending.v1'
 
 type PendingOp = 'upsert' | 'delete'
-export type SyncState = 'local' | 'synced' | 'syncing' | 'pending'
-export type AuthState = 'loading' | 'signedOut' | 'signedIn'
-
-interface Store {
-  auth: AuthState
-  email?: string
-  recipes: Recipe[]
-  sync: SyncState
-  save: (r: Recipe) => void
-  /** Debounced save, for frequently changing inputs on the recipe view. */
-  saveSoon: (r: Recipe) => void
-  remove: (id: string) => void
-  addMany: (list: Recipe[]) => void
-  signOut: () => Promise<void>
-  refresh: () => void
-}
-
-const Ctx = createContext<Store | null>(null)
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -137,6 +120,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
   // Pull on sign-in, when coming back online and when the app regains focus
   useEffect(() => {
     if (!session) return
+    // oxlint-disable-next-line react/set-state-in-effect -- pull() is async and only sets state after the fetch resolves
     pull()
     const onVisible = () => document.visibilityState === 'visible' && pull()
     window.addEventListener('online', pull)
@@ -205,25 +189,22 @@ export function StoreProvider({ children }: StoreProviderProps) {
     writeJson(PENDING_KEY, {})
   }, [commit])
 
-  const sorted = useMemo(() => [...recipes].sort((a, b) => a.name.localeCompare(b.name)), [recipes])
+  const sorted = useMemo(() => recipes.toSorted((a, b) => a.name.localeCompare(b.name)), [recipes])
 
-  const value: Store = {
-    auth,
-    email: session?.user.email,
-    recipes: sorted,
-    sync,
-    save,
-    saveSoon,
-    remove,
-    addMany,
-    signOut,
-    refresh: pull,
-  }
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>
-}
-
-export function useStore() {
-  const s = useContext(Ctx)
-  if (!s) throw new Error('useStore outside provider')
-  return s
+  const value = useMemo<Store>(
+    () => ({
+      auth,
+      email: session?.user.email,
+      recipes: sorted,
+      sync,
+      save,
+      saveSoon,
+      remove,
+      addMany,
+      signOut,
+      refresh: pull,
+    }),
+    [auth, session, sorted, sync, save, saveSoon, remove, addMany, signOut, pull],
+  )
+  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }

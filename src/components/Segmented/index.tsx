@@ -14,7 +14,13 @@ export function Segmented<T extends string>({ options, value, onChange, small, c
   return (
     <div className={cx(s.segmented, small && s.small, className)} role="tablist">
       {options.map((o) => (
-        <button key={o.value} type="button" role="tab" aria-selected={o.value === value} onClick={() => onChange(o.value)}>
+        <button
+          key={o.value}
+          type="button"
+          role="tab"
+          aria-selected={o.value === value}
+          onClick={() => onChange(o.value)}
+        >
           {o.label}
         </button>
       ))}

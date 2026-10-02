@@ -1,0 +1,49 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "jsx-a11y", "import"],
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "settings": {
+    "react": { "version": "19" }
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "react/jsx-key": "error",
+    "react/self-closing-comp": "warn",
+    "react/jsx-boolean-value": "warn",
+    "react/jsx-no-useless-fragment": "warn",
+    "react/no-array-index-key": "warn",
+    "react/react-in-jsx-scope": "off",
+
+    "typescript/no-explicit-any": "error",
+    "typescript/consistent-type-imports": "warn",
+    "typescript/consistent-type-definitions": ["warn", "interface"],
+    "typescript/array-type": ["warn", { "default": "array" }],
+    "typescript/no-non-null-assertion": "warn",
+
+    "import/no-cycle": "error",
+    "import/no-duplicates": "warn",
+    "import/no-unassigned-import": ["warn", { "allow": ["**/*.css"] }],
+
+    "eqeqeq": ["error", "smart"],
+    "prefer-const": "warn",
+    "no-var": "error",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-param-reassign": "error",
+    "prefer-template": "warn",
+    "object-shorthand": "warn",
+    "no-await-in-loop": "off",
+
+    "jsx-a11y/no-autofocus": "off"
+  },
+  "ignorePatterns": ["dist", "dev-dist", "node_modules"]
+}

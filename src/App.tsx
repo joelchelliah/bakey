@@ -1,18 +1,17 @@
 import { TextButton } from './components/Button'
 import { Page } from './components/Page'
 import { Login } from './pages/Login'
-import { RecipeEdit, newRecipe } from './pages/RecipeEdit'
+import { RecipeEdit } from './pages/RecipeEdit'
+import { newRecipe } from './pages/RecipeEdit/recipe'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeView } from './pages/RecipeView'
 import { Settings } from './pages/Settings'
 import { useRoute } from './router'
-import { useStore } from './store'
-import { useMemo } from 'react'
+import { useStore } from './storeContext'
 
 export function App() {
   const { auth, recipes } = useStore()
   const route = useRoute()
-  const fresh = useMemo(() => newRecipe(), [route.name === 'new']) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (auth === 'loading') return <Page center>🥖</Page>
   if (auth === 'signedOut') return <Login />
@@ -23,7 +22,8 @@ export function App() {
     case 'settings':
       return <Settings />
     case 'new':
-      return <RecipeEdit key={fresh.id} initial={fresh} isNew />
+      // initial is only read on mount, so this is a fresh draft each time the route is entered
+      return <RecipeEdit key="new" initial={newRecipe()} isNew />
     case 'view':
     case 'edit': {
       const recipe = recipes.find((r) => r.id === route.id)
