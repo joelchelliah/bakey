@@ -9,8 +9,7 @@ import type { Recipe } from '../types'
 
 export function RecipeView({ recipe }: { recipe: Recipe }) {
   const { saveSoon } = useStore()
-  const [awake, setAwake] = useLocalState('bakey.wakelock', true)
-  const wakeSupported = useWakeLock(awake)
+  useWakeLock(true)
   const [checked, setChecked] = useLocalState<string[]>(`bakey.checked.${recipe.id}`, [])
 
   const variant = recipe.variants.find((v) => v.id === recipe.activeVariant) ?? recipe.variants[0]
@@ -31,17 +30,6 @@ export function RecipeView({ recipe }: { recipe: Recipe }) {
           <Icon name="back" />
         </a>
         <div className="bar-actions">
-          {wakeSupported && (
-            <button
-              className={`iconbtn ${awake ? 'on' : ''}`}
-              aria-pressed={awake}
-              aria-label={awake ? 'Screen stays awake' : 'Screen may sleep'}
-              title={awake ? 'Screen stays awake' : 'Screen may sleep'}
-              onClick={() => setAwake(!awake)}
-            >
-              <Icon name={awake ? 'sun' : 'moon'} />
-            </button>
-          )}
           <button className="iconbtn" aria-label="Edit recipe" onClick={() => go({ name: 'edit', id: recipe.id })}>
             <Icon name="edit" />
           </button>
@@ -111,8 +99,8 @@ export function RecipeView({ recipe }: { recipe: Recipe }) {
       <section className="card table">
         <div className="trow thead">
           <span>Ingredient</span>
-          <span>%</span>
-          <span>g</span>
+          <span>Percentage</span>
+          <span>Weight</span>
         </div>
         {variant.sections.map((s) => {
           const rows = res.rows.filter((r) => r.sectionId === s.id)

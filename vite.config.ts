@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'Bakey',
         short_name: 'Bakey',
         description: "Baker's percentage recipe book",
-        theme_color: '#f6efe4',
-        background_color: '#f6efe4',
+        theme_color: '#1c1814',
+        background_color: '#1c1814',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

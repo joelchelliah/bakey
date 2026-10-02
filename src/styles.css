@@ -1,34 +1,18 @@
 :root {
-  --bg: #f6efe4;
-  --card: #fffaf3;
-  --ink: #2b2118;
-  --muted: #8a7a69;
-  --line: #eadfce;
-  --accent: #b5652b;
-  --accent-ink: #fff;
-  --accent-soft: #f3e1cf;
-  --danger: #b3261e;
-  --warn-bg: #fdecd2;
-  --done: #a99a89;
+  --bg: #1c1814;
+  --card: #27211b;
+  --ink: #f3eadf;
+  --muted: #a39482;
+  --line: #3a3128;
+  --accent: #e08a4c;
+  --accent-ink: #1c1814;
+  --accent-soft: #3d2c1f;
+  --danger: #ff8a80;
+  --warn-bg: #3d2f1a;
+  --done: #6e6256;
   --radius: 14px;
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1c1814;
-    --card: #27211b;
-    --ink: #f3eadf;
-    --muted: #a39482;
-    --line: #3a3128;
-    --accent: #e08a4c;
-    --accent-ink: #1c1814;
-    --accent-soft: #3d2c1f;
-    --danger: #ff8a80;
-    --warn-bg: #3d2f1a;
-    --done: #6e6256;
-  }
+  color-scheme: dark;
 }
 
 * {
@@ -124,9 +108,6 @@ a {
 }
 .iconbtn:active {
   background: var(--accent-soft);
-}
-.iconbtn.on {
-  color: var(--accent);
 }
 .iconbtn.danger {
   color: var(--danger);
@@ -301,7 +282,7 @@ h1.title {
 }
 .trow {
   display: grid;
-  grid-template-columns: 1fr 5.2em 4.6em;
+  grid-template-columns: 1fr 5.6rem 4.4rem;
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -316,7 +297,7 @@ h1.title {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--muted);
   padding-top: 8px;
   padding-bottom: 6px;
