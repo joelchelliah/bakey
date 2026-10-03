@@ -22,7 +22,7 @@ export function newRecipe(r: Partial<Recipe> = {}): Recipe {
     variants: [
       {
         id: uid(),
-        name: 'Standard',
+        name: 'Regular',
         sections: [
           {
             id: uid(),
