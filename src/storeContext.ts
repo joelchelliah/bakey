@@ -1,9 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { Recipe } from './types'
 
-/** localStorage key of the recipe cache. */
-export const RECIPES_KEY = 'bakey.recipes.v1'
-
 export type SyncState = 'local' | 'synced' | 'syncing' | 'pending'
 export type AuthState = 'loading' | 'signedOut' | 'signedIn'
 

@@ -18,6 +18,7 @@ import { TopBar } from '../../components/TopBar'
 import { WarningList } from '../../components/Warning'
 import { useLocalState, useWakeLock } from '../../hooks'
 import { go, href } from '../../router'
+import { keys } from '../../storage'
 import { useStore } from '../../storeContext'
 import type { Recipe, Variant } from '../../types'
 import { updateById } from '../../util'
@@ -31,7 +32,7 @@ interface RecipeViewProps {
 export function RecipeView({ recipe }: RecipeViewProps) {
   const { saveSoon } = useStore()
   useWakeLock(true)
-  const [checked, setChecked] = useLocalState<string[]>(`bakey.checked.${recipe.id}`, [])
+  const [checked, setChecked] = useLocalState<string[]>(keys.checked(recipe.id), [])
 
   const variant = variantOf(recipe)
   const res = useMemo(() => computeVariant(recipe, variant), [recipe, variant])

@@ -3,11 +3,10 @@ import type { Session } from '@supabase/supabase-js'
 import { authLog } from './authLog'
 import { supabase } from './supabase'
 import { normalizeRecipe, normalizeRecipes } from './model'
-import { RECIPES_KEY, StoreContext, type AuthState, type Store, type SyncState } from './storeContext'
+import { clearAllChecked, keys, readJson, removeKey, writeJson } from './storage'
+import { StoreContext, type AuthState, type Store, type SyncState } from './storeContext'
 import type { Recipe } from './types'
-import { readJson, updateById, writeJson } from './util'
-
-const PENDING_KEY = 'bakey.pending.v1'
+import { updateById } from './util'
 
 type PendingOp = 'upsert' | 'delete'
 
@@ -16,11 +15,11 @@ interface StoreProviderProps {
 }
 
 export function StoreProvider({ children }: StoreProviderProps) {
-  const [recipes, setRecipes] = useState<Recipe[]>(() => normalizeRecipes(readJson(RECIPES_KEY, [])))
+  const [recipes, setRecipes] = useState<Recipe[]>(() => normalizeRecipes(readJson(keys.recipes, [])))
   const [session, setSession] = useState<Session | null>(null)
   const [auth, setAuth] = useState<AuthState>(supabase ? 'loading' : 'signedIn')
   const [sync, setSync] = useState<SyncState>(supabase ? 'synced' : 'local')
-  const pending = useRef<Record<string, PendingOp>>(readJson(PENDING_KEY, {}))
+  const pending = useRef<Record<string, PendingOp>>(readJson(keys.pending, {}))
   const recipesRef = useRef(recipes)
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const flushing = useRef(false)
@@ -28,7 +27,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
   const commit = useCallback((next: Recipe[]) => {
     recipesRef.current = next
     setRecipes(next)
-    writeJson(RECIPES_KEY, next)
+    writeJson(keys.recipes, next)
   }, [])
 
   const flush = useCallback(async () => {
@@ -56,7 +55,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
           }
           // only clear if nothing newer was queued meanwhile
           if (pending.current[id] === op) delete pending.current[id]
-          writeJson(PENDING_KEY, pending.current)
+          writeJson(keys.pending, pending.current)
         }
       }
       setSync(Object.keys(pending.current).length ? 'pending' : 'synced')
@@ -126,7 +125,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
   const markPending = useCallback((id: string, op: PendingOp) => {
     if (!supabase) return
     pending.current[id] = op
-    writeJson(PENDING_KEY, pending.current)
+    writeJson(keys.pending, pending.current)
   }, [])
 
   const queue = useCallback(
@@ -166,6 +165,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
     (id: string) => {
       clearTimeout(timers.current[id])
       commit(recipesRef.current.filter((x) => x.id !== id))
+      removeKey(keys.checked(id))
       queue(id, 'delete')
     },
     [commit, queue],
@@ -184,7 +184,8 @@ export function StoreProvider({ children }: StoreProviderProps) {
     await supabase?.auth.signOut()
     commit([])
     pending.current = {}
-    writeJson(PENDING_KEY, {})
+    writeJson(keys.pending, {})
+    clearAllChecked()
   }, [commit])
 
   const sorted = useMemo(() => recipes.toSorted((a, b) => a.name.localeCompare(b.name)), [recipes])

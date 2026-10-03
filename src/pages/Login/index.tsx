@@ -5,11 +5,12 @@ import { Hint } from '../../components/Hint'
 import { Input } from '../../components/Input'
 import { Page } from '../../components/Page'
 import { Warning } from '../../components/Warning'
+import { keys } from '../../storage'
 import { supabase } from '../../supabase'
 import s from './index.module.css'
 
 export function Login() {
-  const [email, setEmail] = useState(() => localStorage.getItem('bakey.email') ?? '')
+  const [email, setEmail] = useState(() => localStorage.getItem(keys.email) ?? '')
   const [code, setCode] = useState('')
   const [sent, setSent] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -20,7 +21,7 @@ export function Login() {
     if (!supabase) return
     setBusy(true)
     setError('')
-    localStorage.setItem('bakey.email', email)
+    localStorage.setItem(keys.email, email)
     const { error: err } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true },

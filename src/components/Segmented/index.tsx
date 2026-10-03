@@ -12,15 +12,9 @@ interface SegmentedProps<T extends string> {
 
 export function Segmented<T extends string>({ options, value, onChange, small, className }: SegmentedProps<T>) {
   return (
-    <div className={cx(s.segmented, small && s.small, className)} role="tablist">
+    <div className={cx(s.segmented, small && s.small, className)}>
       {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="tab"
-          aria-selected={o.value === value}
-          onClick={() => onChange(o.value)}
-        >
+        <button key={o.value} type="button" aria-pressed={o.value === value} onClick={() => onChange(o.value)}>
           {o.label}
         </button>
       ))}

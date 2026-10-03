@@ -12,7 +12,11 @@ type IngSpec = [name: string, group: Group, amount: AmountSpec, opts?: { modifie
 /** Percentage of an earlier ingredient (referenced by its key). */
 const of =
   (key: string, factor: number) =>
-  (k: Record<string, string>): Amount => ({ kind: 'relative', of: k[key], factor })
+  (k: Record<string, string>): Amount => {
+    const id = k[key]
+    if (!id) throw new Error(`No ingredient with key "${key}" defined before this one`)
+    return { kind: 'relative', of: id, factor }
+  }
 
 function section(name: string, specs: IngSpec[], keys: Record<string, string>): Section {
   return {

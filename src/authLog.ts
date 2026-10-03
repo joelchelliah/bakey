@@ -1,6 +1,8 @@
 // TEMPORARY: on-device auth trace for debugging unexpected sign-outs in the home-screen app. Remove when solved.
 
-const KEY = 'bakey.authlog'
+import { keys } from './storage'
+
+const KEY = keys.authLog
 const MAX = 1500
 const NOISE = ['#_acquireLock', '#_useSession', '#_autoRefreshTokenTick()', '#getSession()']
 const SECRET = new Set(['access_token', 'refresh_token', 'provider_token', 'provider_refresh_token', 'user'])
@@ -33,8 +35,8 @@ export function readAuthLog() {
 
 // What the stored session looks like at launch, before Supabase touches it.
 function bootSnapshot() {
-  const keys = Object.keys(localStorage)
-  const authKey = keys.find((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))
+  const stored = Object.keys(localStorage)
+  const authKey = stored.find((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))
   let session = 'none'
   if (authKey) {
     try {
@@ -47,7 +49,7 @@ function bootSnapshot() {
     }
   }
   const standalone = matchMedia('(display-mode: standalone)').matches
-  authLog(`BOOT standalone=${standalone} session=${session} keys=${keys.join(',')}`)
+  authLog(`BOOT standalone=${standalone} session=${session} keys=${stored.join(',')}`)
 }
 
 try {

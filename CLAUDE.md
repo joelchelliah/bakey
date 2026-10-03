@@ -4,7 +4,7 @@ A mobile-first PWA recipe book that uses baker's percentages. It replaces a set 
 
 ## Stack
 
-- Vite + React 19 + TypeScript (strict). `vite-plugin-pwa` handles installability and offline caching.
+- Vite + React 19 + TypeScript (strict, plus `noUncheckedIndexedAccess`: an array or record lookup may be `undefined`, so guard it instead of using `!`). `vite-plugin-pwa` handles installability and offline caching.
 - Supabase handles auth (email OTP/magic link) and storage. The app is hosted on Vercel as a static site.
 - No router library: hash routing lives in `src/router.ts`. No CSS framework: CSS modules, one per component (see [Styling](#styling)). There is only a dark theme; there's no light mode and no theme toggle.
 
@@ -19,18 +19,20 @@ npm run lint:fix # oxlint with safe autofixes
 npm run format   # oxfmt (config in .oxfmtrc.json): single quotes, no semicolons, 120 columns
 npm run format:check
 npm run typecheck # tsc -b
-npm run check    # lint:fix, then format, then typecheck
+npm run test     # vitest run (the permanent tests, see Testing policy)
+npm run check    # lint:fix, then format, then typecheck, then test
 ```
 
-**After every completed feature, run `npm run check` and make sure it passes before handing over to the user for verification.** If it fails, fix the cause; don't silence rules to get it green unless the rule is genuinely wrong for that line, in which case use a one-line `oxlint-disable-next-line <rule> -- <reason>`.
+**After every completed feature, run `npm run check` and make sure it passes (lint, format, typecheck and tests) before handing over to the user for verification.** If it fails, fix the cause; don't silence rules or skip tests to get it green. If a lint rule is genuinely wrong for that line, use a one-line `oxlint-disable-next-line <rule> -- <reason>`.
 
 Linting uses Oxlint, not ESLint: typescript-eslint doesn't support TypeScript 7. Formatting uses oxfmt, not Prettier. Markdown is not formatted.
 
 ## Testing policy
 
-**The repo keeps no permanent tests.** Write tests during development to verify the outcome you want (calculation tests with vitest, or browser checks with `playwright-core` against `npm run preview`). Once the outcome is achieved, delete them along with any test-only dependencies or scripts. Use the scratchpad for throwaway scripts where possible.
-
-To verify calculations, use the reference values in [Original sheets](#original-sheets). For UI checks, use a 390×844 mobile viewport.
+**Permanent tests cover pure logic only**: `src/calc.test.ts` (the reference values from [Original sheets](#original-sheets) plus the calculation rules, formatting and parsing) and `src/model.test.ts` (normalisation and backups). They run with Vitest as part of `npm run check`.
+- Keep them true. When you change behaviour they cover, update or extend the tests in the same change. Never delete, skip or loosen a test just to make it pass. If an expected value looks wrong, ask the user. Lint rejects `.only` and `.skip`.
+- When you add pure logic that's easy to get subtly wrong (to `calc.ts`, `model.ts` or helpers like `RecipeEdit/recipe.ts`), add tests next to it as `<file>.test.ts`.
+- Don't add permanent UI or browser tests. Verify UI with throwaway `playwright-core` scripts in the scratchpad (against a build, see below) at a 390×844 viewport, and delete them along with any test-only dependencies when you're done.
 
 **Local and production share the same Supabase database** (`.env` points at the production project). Tests must never write to it, or even sign in to it:
 - Build with the Supabase vars overridden. Vite never overwrites env vars that are already set, so `VITE_SUPABASE_URL= VITE_SUPABASE_ANON_KEY= npx vite build --outDir <scratch>` gives local-only mode. To test sync, set `VITE_SUPABASE_URL=https://fakeproj.supabase.co` and a dummy key, seed a fake session in localStorage (`sb-fakeproj-auth-token`), and answer every request to that host with Playwright's `page.route`.
@@ -46,13 +48,14 @@ To verify calculations, use the reference values in [Original sheets](#original-
 | `src/calc.ts` | Pure calculation engine (`computeVariant`), recipe helpers shared by screens (`variantOf`, `inputsOf`, `findAnchor`, `showsPortions`), plus number formatting and parsing. |
 | `src/seed.ts` | Starter recipes converted from the original Numbers sheets. |
 | `src/store.tsx` | `StoreProvider`: recipes, auth, a localStorage cache, the offline write queue and Supabase sync. |
-| `src/storeContext.ts` | The `Store` interface, its context, `useStore()` and `RECIPES_KEY`. Kept out of `store.tsx` so that file only exports components (Fast Refresh). |
+| `src/storeContext.ts` | The `Store` interface, its context and `useStore()`. Kept out of `store.tsx` so that file only exports components (Fast Refresh). |
 | `src/supabase.ts` | Supabase client. It is `null` when env vars are missing, which puts the app in local-only mode with no login. |
 | `src/styles/tokens.css` | Colour, radius and font tokens as CSS custom properties. The only place colours are defined. |
 | `src/styles/global.css` | Reset and `body` styles. The only global CSS besides tokens. |
 | `src/pages/<Name>/` | One folder per screen: `RecipeList`, `RecipeView` (the baking screen), `RecipeEdit`, `Settings`, `Login`. Larger screens keep their subcomponents next to `index.tsx` (e.g. `RecipeEdit/IngredientEditor.tsx`), and screen-specific helpers in a plain `.ts` file (e.g. `RecipeEdit/recipe.ts`). |
 | `src/components/<Name>/` | Shared UI: `Page`, `TopBar`, `Card`, `Row`/`RowValue`, `SectionTitle`, `Button` (`IconButton`, `TextButton`, `PrimaryButton`), `Input`/`Select`/`TextArea`, `NumField` (decimal input that accepts a comma or a dot, with an optional stepper), `Segmented`, `Switch`, `Warning`/`WarningList`, `Hint`, `ErrorBoundary` (wraps the whole app in `main.tsx`; its fallback offers Reload, Back to recipes and an export of the raw cache), `Icon` (inline SVG paths). |
-| `src/util.ts` | Small generic helpers: `uid`, `clone`, `cx`, `updateById` (immutable update of one item in an id'd list) and `readJson`/`writeJson` (localStorage that never throws). |
+| `src/util.ts` | Small generic helpers: `uid`, `clone`, `cx` and `updateById` (immutable update of one item in an id'd list). |
+| `src/storage.ts` | `keys`, the only place localStorage keys are defined, plus `readJson`/`writeJson`/`removeKey` (never throw) and `clearAllChecked`. |
 | `src/hooks.ts` | `useWakeLock` (always on in `RecipeView`) and `useLocalState` (per-device localStorage state). |
 | `supabase/migrations/` | SQL for the `recipes` table + RLS. |
 
@@ -102,7 +105,7 @@ To verify calculations, use the reference values in [Original sheets](#original-
   - Writes go into a pending queue (`bakey.pending.v1`) and are flushed to Supabase.
   - The app pulls on sign-in, on focus and when it comes back online. Pending local changes win over server copies; otherwise it's last write wins.
 - `saveSoon` debounces saves (800 ms) for inputs changed on the recipe screen. These are "remembered last used" values, saved on the recipe itself. It marks the recipe as pending straight away, so a pull during the debounce window doesn't overwrite the edit.
-- Per-device state in localStorage: checklist ticks (`bakey.checked.<recipeId>`) and the last login email.
+- Per-device state in localStorage: checklist ticks (`keys.checked(recipeId)`) and the last login email. All keys live in `storage.ts`. Ticks are removed when their recipe is deleted, and all ticks are removed on sign-out; the email is kept for the next login.
 
 ## Setup (Supabase + Vercel)
 

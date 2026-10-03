@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn", "oxc", "react", "jsx-a11y", "import"],
+  "plugins": ["typescript", "unicorn", "oxc", "react", "jsx-a11y", "import", "vitest"],
   "env": {
     "browser": true,
     "es2024": true
@@ -43,7 +43,10 @@
     "object-shorthand": "warn",
     "no-await-in-loop": "off",
 
-    "jsx-a11y/no-autofocus": "off"
+    "jsx-a11y/no-autofocus": "off",
+
+    "vitest/no-focused-tests": "error",
+    "vitest/no-disabled-tests": "error"
   },
   "ignorePatterns": ["dist", "dev-dist", "node_modules"]
 }

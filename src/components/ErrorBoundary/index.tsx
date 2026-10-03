@@ -1,7 +1,6 @@
 import { Component, type ErrorInfo } from 'react'
 import { exportRecipes } from '../../model'
-import { RECIPES_KEY } from '../../storeContext'
-import { readJson } from '../../util'
+import { keys, readJson } from '../../storage'
 import { PrimaryButton, TextButton } from '../Button'
 import { Page } from '../Page'
 import s from './index.module.css'
@@ -33,7 +32,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   // Reads the raw cache rather than the store, which may be what crashed.
   exportCache = () => {
-    const raw = readJson<unknown>(RECIPES_KEY, [])
+    const raw = readJson<unknown>(keys.recipes, [])
     exportRecipes(Array.isArray(raw) ? raw : [])
   }
 

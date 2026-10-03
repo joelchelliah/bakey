@@ -27,7 +27,9 @@ interface RecipeEditProps {
 export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   const { save, remove } = useStore()
   const [r, setR] = useState<Recipe>(() => clone(initial))
-  const [vid, setVid] = useState(initial.activeVariant ?? initial.variants[0].id)
+  const [vid, setVid] = useState(() => variantOf(initial).id)
+  // Snapshot from mount: for a new recipe the `initial` prop is rebuilt on every render.
+  const [pristine] = useState(() => JSON.stringify(initial))
   const variant = variantOf(r, vid)
   const res = useMemo(() => computeVariant(r, variant), [r, variant])
   const pctById = new Map(res.rows.map((x) => [x.ingredient.id, x.pct]))
@@ -56,7 +58,10 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
     go({ name: 'view', id: out.id }, true)
   }
 
-  const onCancel = () => (isNew ? go({ name: 'list' }, true) : go({ name: 'view', id: r.id }, true))
+  const onCancel = () => {
+    if (JSON.stringify(r) !== pristine && !confirm('Discard your changes?')) return
+    go(isNew ? { name: 'list' } : { name: 'view', id: r.id }, true)
+  }
 
   const onAddVariant = () => {
     const c = copyVariant(variant)
@@ -70,8 +75,8 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
 
     const rest = r.variants.filter((v) => v.id !== variant.id)
 
+    // vid now points at a deleted variant, so variantOf() falls back to the first one
     set({ variants: rest })
-    setVid(rest[0].id)
   }
 
   return (

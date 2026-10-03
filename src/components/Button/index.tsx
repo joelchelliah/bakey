@@ -9,7 +9,7 @@ interface ButtonProps extends Omit<ComponentProps<'button'>, 'className'> {
 }
 
 interface BaseProps extends ButtonProps {
-  className: string
+  className?: string
 }
 
 interface IconButtonProps extends Omit<ButtonProps, 'children'> {
@@ -27,14 +27,17 @@ interface TextButtonProps extends ButtonProps {
 
 interface PrimaryButtonProps extends ButtonProps {}
 
-function Base({ href, className, ...props }: BaseProps) {
-  if (href)
+function Base({ href, ...props }: BaseProps) {
+  if (href) {
+    // `type` and `disabled` don't exist on links; a disabled link loses its href instead.
+    const { type: _type, disabled, children, ...rest } = props
     return (
-      <a href={href} className={className} aria-label={props['aria-label']}>
-        {props.children}
+      <a href={disabled ? undefined : href} aria-disabled={disabled || undefined} {...(rest as ComponentProps<'a'>)}>
+        {children}
       </a>
     )
-  return <button className={className} {...props} />
+  }
+  return <button {...props} />
 }
 
 export function IconButton({ icon, size = 22, label, danger, ...props }: IconButtonProps) {

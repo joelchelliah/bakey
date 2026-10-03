@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { readJson, writeJson } from './util'
+import { readJson, writeJson } from './storage'
 
 /** Keeps the screen on while `enabled` and the page is visible. */
 export function useWakeLock(enabled: boolean) {

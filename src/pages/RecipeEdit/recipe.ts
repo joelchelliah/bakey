@@ -31,13 +31,18 @@ export function copyVariant(v: Variant): Variant {
 export function moveIngredient(v: Variant, sid: string, iid: string, dir: Dir): Variant {
   const sections = clone(v.sections)
   const si = sections.findIndex((s) => s.id === sid)
-  const list = sections[si].ingredients
+  const list = sections[si]?.ingredients ?? []
   const ii = list.findIndex((i) => i.id === iid)
-  const [ing] = list.splice(ii, 1)
-  const to = ii + dir
+  const ing = list[ii]
+  if (!ing) return v
 
-  if (to < 0 && si > 0) sections[si - 1].ingredients.push(ing)
-  else if (to > list.length && si < sections.length - 1) sections[si + 1].ingredients.unshift(ing)
+  list.splice(ii, 1)
+  const to = ii + dir
+  const prev = sections[si - 1]
+  const next = sections[si + 1]
+
+  if (to < 0 && prev) prev.ingredients.push(ing)
+  else if (to > list.length && next) next.ingredients.unshift(ing)
   else list.splice(Math.max(0, Math.min(list.length, to)), 0, ing)
 
   return { ...v, sections }
@@ -48,8 +53,11 @@ export function moveSection(v: Variant, sid: string, dir: Dir): Variant {
   const sections = [...v.sections]
   const si = sections.findIndex((s) => s.id === sid)
   const to = si + dir
+  const a = sections[si]
+  const b = sections[to]
 
-  if (si < 0 || to < 0 || to >= sections.length) return v
-  ;[sections[si], sections[to]] = [sections[to], sections[si]]
+  if (!a || !b) return v
+  sections[si] = b
+  sections[to] = a
   return { ...v, sections }
 }

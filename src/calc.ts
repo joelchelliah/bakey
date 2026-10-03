@@ -38,7 +38,10 @@ export function findAnchor(recipe: Recipe, v: Variant): Ingredient | undefined {
 
 /** The variant with `id`, falling back to the first one. */
 export function variantOf(recipe: Recipe, id = recipe.activeVariant): Variant {
-  return recipe.variants.find((v) => v.id === id) ?? recipe.variants[0]
+  const v = recipe.variants.find((x) => x.id === id) ?? recipe.variants[0]
+  // normalizeRecipe() guarantees at least one variant
+  if (!v) throw new Error(`"${recipe.name}" has no variants`)
+  return v
 }
 
 /** Whether portion inputs and outputs apply: always in portions mode, otherwise when switched on. */
