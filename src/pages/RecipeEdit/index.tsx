@@ -127,7 +127,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
 
       <SectionTitle>Ingredients</SectionTitle>
       <VariantPicker
-        variants={r.variants}
+        recipe={r}
         variant={variant}
         usesLiquidRemainder={usesLiquidRemainder}
         onSelect={setVid}

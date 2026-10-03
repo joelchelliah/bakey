@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { computeVariant, findAnchor, fmtWeight } from '../../calc'
+import { computeVariant, findAnchor, fmtWeight, inputsOf, type OverridableInput } from '../../calc'
 import { IconButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { NumField } from '../../components/NumField'
@@ -11,7 +11,7 @@ import { Warning } from '../../components/Warning'
 import { useLocalState, useWakeLock } from '../../hooks'
 import { go, href } from '../../router'
 import { useStore } from '../../storeContext'
-import type { Recipe } from '../../types'
+import type { Recipe, Variant } from '../../types'
 import { IngredientTable } from './IngredientTable'
 import s from './index.module.css'
 
@@ -28,10 +28,14 @@ export function RecipeView({ recipe }: RecipeViewProps) {
   const res = useMemo(() => computeVariant(recipe, variant), [recipe, variant])
   const anchor = recipe.mode === 'anchor' ? findAnchor(recipe, variant) : undefined
   const update = (patch: Partial<Recipe>) => saveSoon({ ...recipe, ...patch })
-  const setHydration = (h: number) =>
+  const setVariant = (patch: Partial<Variant>) =>
     update({
-      variants: recipe.variants.map((v) => (v.id === variant.id ? { ...v, hydration: h } : v)),
+      variants: recipe.variants.map((v) => (v.id === variant.id ? { ...v, ...patch } : v)),
     })
+  const inputs = inputsOf(recipe, variant)
+  // An input the variant overrides is saved on the variant, otherwise on the recipe.
+  const setInput = (key: OverridableInput, n: number) =>
+    variant[key] !== undefined ? setVariant({ [key]: n }) : update({ [key]: n })
 
   const toggle = (id: string) => setChecked(checked.includes(id) ? checked.filter((x) => x !== id) : [...checked, id])
   const showPortions = recipe.mode === 'portions' || recipe.showPortions
@@ -78,14 +82,14 @@ export function RecipeView({ recipe }: RecipeViewProps) {
         )}
         {showPortions && (
           <Row as="label" label="Portions">
-            <NumField value={recipe.portions} onChange={(n) => update({ portions: n })} stepper min={1} />
+            <NumField value={inputs.portions} onChange={(n) => setInput('portions', n)} stepper min={1} />
           </Row>
         )}
         {recipe.mode === 'portions' && (
           <Row as="label" label="Portion size">
             <NumField
-              value={recipe.portionSize}
-              onChange={(n) => update({ portionSize: n })}
+              value={inputs.portionSize}
+              onChange={(n) => setInput('portionSize', n)}
               suffix="g"
               step={10}
               min={0}
@@ -94,12 +98,12 @@ export function RecipeView({ recipe }: RecipeViewProps) {
         )}
         {variant.hydration !== undefined && (
           <Row as="label" label="Hydration">
-            <NumField value={variant.hydration} onChange={setHydration} suffix="%" />
+            <NumField value={variant.hydration} onChange={(n) => setVariant({ hydration: n })} suffix="%" />
           </Row>
         )}
         {recipe.modifierEnabled && (
           <Row as="label" label="Modifier">
-            <NumField value={recipe.modifier} onChange={(n) => update({ modifier: n })} suffix="%" step={5} stepper />
+            <NumField value={inputs.modifier} onChange={(n) => setInput('modifier', n)} suffix="%" step={5} stepper />
           </Row>
         )}
         {recipe.mode === 'portions' && (
@@ -119,10 +123,10 @@ export function RecipeView({ recipe }: RecipeViewProps) {
 
       <IngredientTable recipe={recipe} variant={variant} res={res} checked={checked} onToggle={toggle} />
       <div className={s.tableNote}>
-        {recipe.modifierEnabled && recipe.modifier !== 0 && (
+        {recipe.modifierEnabled && inputs.modifier !== 0 && (
           <span>
-            * {recipe.modifier > 0 ? '+' : ''}
-            {recipe.modifier}% modifier applied
+            * {inputs.modifier > 0 ? '+' : ''}
+            {inputs.modifier}% modifier applied
           </span>
         )}
         {checked.length > 0 && (

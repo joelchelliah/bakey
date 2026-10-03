@@ -1,4 +1,4 @@
-import { fmtPct, fmtWeight, type VariantResult } from '../../calc'
+import { fmtPct, fmtWeight, inputsOf, type VariantResult } from '../../calc'
 import { Card } from '../../components/Card'
 import { Icon } from '../../components/Icon'
 import type { Recipe, Variant } from '../../types'
@@ -16,7 +16,7 @@ interface IngredientTableProps {
 /** The baking checklist: tap an ingredient once it's weighed. */
 export function IngredientTable({ recipe, variant, res, checked, onToggle }: IngredientTableProps) {
   const namedSections = variant.sections.length > 1 || variant.sections.some((x) => x.name)
-  const modifierShown = recipe.modifierEnabled && recipe.modifier !== 0
+  const modifierShown = recipe.modifierEnabled && inputsOf(recipe, variant).modifier !== 0
 
   return (
     <Card className={s.table}>

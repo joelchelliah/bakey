@@ -41,6 +41,10 @@ export interface Variant {
   id: string
   name: string
   hydration?: number // target for 'remainder' liquid ingredients
+  // Overrides of the recipe's inputs; undefined = use the recipe's value
+  portions?: number
+  portionSize?: number
+  modifier?: number
   sections: Section[]
 }
 

@@ -75,7 +75,7 @@ To verify calculations, use the reference values in [Original sheets](#original-
 - **Groups** (`flour` / `liquid` / `other`) exist only to resolve remainders.
 - **Modifier:** when it's enabled, ingredients flagged `modified` get `pct × (1 + modifier/100)` *before* the totals and base are computed.
 - **Portions:** `portionSize = total / portions`. When there are set-asides, `remaining = (total − Σ set-aside weights) / portions`.
-- **Sections** only group ingredients for display and give each group a subtotal. **Variants** are alternative ingredient lists that share the recipe's inputs. `hydration` is stored per variant.
+- **Sections** only group ingredients for display and give each group a subtotal. **Variants** are alternative ingredient lists that share the recipe's inputs. `hydration` is stored per variant. A variant can also override `portions`, `portionSize` and `modifier`; `inputsOf()` resolves them, falling back to the recipe's values. On the recipe screen, an overridden input is saved on the variant.
 - **Rounding:** weights show 2 dp below 1 g, 1 dp below 50 g, and whole grams otherwise.
 - **Errors** (negative remainders, circular references, a missing hydration target) are returned in `result.errors` and shown as warnings, not thrown.
 

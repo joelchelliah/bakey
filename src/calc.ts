@@ -36,7 +36,19 @@ export function findAnchor(recipe: Recipe, v: Variant): Ingredient | undefined {
   return list.find((i) => i.name.trim().toLowerCase() === name) ?? list.find((i) => i.amount.kind !== 'toTaste')
 }
 
+export type OverridableInput = 'portions' | 'portionSize' | 'modifier'
+
+/** The recipe's portions, portion size and modifier, with the variant's overrides applied. */
+export function inputsOf(recipe: Recipe, v: Variant): Record<OverridableInput, number> {
+  return {
+    portions: v.portions ?? recipe.portions,
+    portionSize: v.portionSize ?? recipe.portionSize,
+    modifier: v.modifier ?? recipe.modifier,
+  }
+}
+
 export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
+  const inputs = inputsOf(recipe, v)
   const items = allIngredients(v)
   const byId = new Map(items.map((x) => [x.ing.id, x.ing]))
   const errors: string[] = []
@@ -101,7 +113,7 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
     return p
   }
 
-  const mod = recipe.modifierEnabled ? 1 + recipe.modifier / 100 : 1
+  const mod = recipe.modifierEnabled ? 1 + inputs.modifier / 100 : 1
   const pcts = items.map(({ ing, sectionId }) => {
     const pct = pctOf(ing)
     const effectivePct = pct === null ? null : ing.modified ? pct * mod : pct
@@ -117,7 +129,7 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
     base = ap ? (recipe.anchorWeight / ap) * 100 : NaN
     if (!anchor) errors.push('No anchor ingredient')
   } else {
-    const total = recipe.mode === 'portions' ? recipe.portions * recipe.portionSize : recipe.totalWeight
+    const total = recipe.mode === 'portions' ? inputs.portions * inputs.portionSize : recipe.totalWeight
     base = totalPct > 0 ? (total / totalPct) * 100 : NaN
   }
 
@@ -145,11 +157,11 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
     errors: [...new Set(errors)],
   }
   const hasPortions = recipe.mode === 'portions' || recipe.showPortions
-  if (hasPortions && recipe.portions > 0) {
-    result.portionSize = totalWeight / recipe.portions
+  if (hasPortions && inputs.portions > 0) {
+    result.portionSize = totalWeight / inputs.portions
     if (recipe.setAsides.length) {
       const reserved = recipe.setAsides.reduce((s, a) => s + (a.weight || 0), 0)
-      result.remainingPortionSize = (totalWeight - reserved) / recipe.portions
+      result.remainingPortionSize = (totalWeight - reserved) / inputs.portions
     }
   }
   return result
