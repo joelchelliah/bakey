@@ -32,20 +32,26 @@ Linting uses Oxlint, not ESLint: typescript-eslint doesn't support TypeScript 7.
 
 To verify calculations, use the reference values in [Original sheets](#original-sheets). For UI checks, use a 390×844 mobile viewport.
 
+**Local and production share the same Supabase database** (`.env` points at the production project). Tests must never write to it, or even sign in to it:
+- Build with the Supabase vars overridden. Vite never overwrites env vars that are already set, so `VITE_SUPABASE_URL= VITE_SUPABASE_ANON_KEY= npx vite build --outDir <scratch>` gives local-only mode. To test sync, set `VITE_SUPABASE_URL=https://fakeproj.supabase.co` and a dummy key, seed a fake session in localStorage (`sb-fakeproj-auth-token`), and answer every request to that host with Playwright's `page.route`.
+- Before running a test, grep the bundle to make sure the real project host isn't in it.
+- In Playwright, abort every request that isn't to localhost or the fake host.
+
 ## Code map
 
 | File | Purpose |
 | --- | --- |
-| `src/types.ts` | Data model (`Recipe`, `Variant`, `Section`, `Ingredient`, `Amount`). Percentages are in percent units (72 = 72%). Also `categories` (list grouping, in display order) and `categoryOf()`, which maps a missing or unknown category to `other`. |
+| `src/types.ts` | Data model (`Recipe`, `Variant`, `Section`, `Ingredient`, `Amount`). Percentages are in percent units (72 = 72%). Also `categories` (list grouping, in display order). |
+| `src/model.ts` | `newRecipe()` (the single source of recipe defaults, also used by `seed.ts`), `normalizeRecipe(s)` and the backup format (`exportRecipes`, `parseBackup`). |
 | `src/calc.ts` | Pure calculation engine (`computeVariant`), recipe helpers shared by screens (`variantOf`, `inputsOf`, `findAnchor`, `showsPortions`), plus number formatting and parsing. |
 | `src/seed.ts` | Starter recipes converted from the original Numbers sheets. |
 | `src/store.tsx` | `StoreProvider`: recipes, auth, a localStorage cache, the offline write queue and Supabase sync. |
-| `src/storeContext.ts` | The `Store` interface, its context and `useStore()`. Kept out of `store.tsx` so that file only exports components (Fast Refresh). |
+| `src/storeContext.ts` | The `Store` interface, its context, `useStore()` and `RECIPES_KEY`. Kept out of `store.tsx` so that file only exports components (Fast Refresh). |
 | `src/supabase.ts` | Supabase client. It is `null` when env vars are missing, which puts the app in local-only mode with no login. |
 | `src/styles/tokens.css` | Colour, radius and font tokens as CSS custom properties. The only place colours are defined. |
 | `src/styles/global.css` | Reset and `body` styles. The only global CSS besides tokens. |
 | `src/pages/<Name>/` | One folder per screen: `RecipeList`, `RecipeView` (the baking screen), `RecipeEdit`, `Settings`, `Login`. Larger screens keep their subcomponents next to `index.tsx` (e.g. `RecipeEdit/IngredientEditor.tsx`), and screen-specific helpers in a plain `.ts` file (e.g. `RecipeEdit/recipe.ts`). |
-| `src/components/<Name>/` | Shared UI: `Page`, `TopBar`, `Card`, `Row`/`RowValue`, `SectionTitle`, `Button` (`IconButton`, `TextButton`, `PrimaryButton`), `Input`/`Select`/`TextArea`, `NumField` (decimal input that accepts a comma or a dot, with an optional stepper), `Segmented`, `Switch`, `Warning`/`WarningList`, `Hint`, `Icon` (inline SVG paths). |
+| `src/components/<Name>/` | Shared UI: `Page`, `TopBar`, `Card`, `Row`/`RowValue`, `SectionTitle`, `Button` (`IconButton`, `TextButton`, `PrimaryButton`), `Input`/`Select`/`TextArea`, `NumField` (decimal input that accepts a comma or a dot, with an optional stepper), `Segmented`, `Switch`, `Warning`/`WarningList`, `Hint`, `ErrorBoundary` (wraps the whole app in `main.tsx`; its fallback offers Reload, Back to recipes and an export of the raw cache), `Icon` (inline SVG paths). |
 | `src/util.ts` | Small generic helpers: `uid`, `clone`, `cx`, `updateById` (immutable update of one item in an id'd list) and `readJson`/`writeJson` (localStorage that never throws). |
 | `src/hooks.ts` | `useWakeLock` (always on in `RecipeView`) and `useLocalState` (per-device localStorage state). |
 | `supabase/migrations/` | SQL for the `recipes` table + RLS. |
@@ -89,12 +95,13 @@ To verify calculations, use the reference values in [Original sheets](#original-
 
 ## Data & sync
 
-- Each Supabase row is `public.recipes(id uuid, user_id, data jsonb, updated_at, created_at)` with RLS `user_id = auth.uid()`. The whole `Recipe` object is stored in `data`, so model changes don't need migrations. Keep new fields optional, or add defaults when reading, so old rows keep working.
+- Each Supabase row is `public.recipes(id uuid, user_id, data jsonb, updated_at, created_at)` with RLS `user_id = auth.uid()`. The whole `Recipe` object is stored in `data`, so model changes don't need migrations.
+- Everything read from outside the app goes through `normalizeRecipe()`: the localStorage cache, rows pulled from Supabase and imported backups. It fills missing or invalid fields with defaults, drops broken list items and keeps unknown fields. When you add a field to the model, add it to `normalizeRecipe()` as well; components can then rely on the types without defensive checks.
 - Local-first:
   - The UI reads from state that is cached in localStorage (`bakey.recipes.v1`).
   - Writes go into a pending queue (`bakey.pending.v1`) and are flushed to Supabase.
   - The app pulls on sign-in, on focus and when it comes back online. Pending local changes win over server copies; otherwise it's last write wins.
-- `saveSoon` debounces saves (800 ms) for inputs changed on the recipe screen. These are "remembered last used" values, saved on the recipe itself.
+- `saveSoon` debounces saves (800 ms) for inputs changed on the recipe screen. These are "remembered last used" values, saved on the recipe itself. It marks the recipe as pending straight away, so a pull during the debounce window doesn't overwrite the edit.
 - Per-device state in localStorage: checklist ticks (`bakey.checked.<recipeId>`) and the last login email.
 
 ## Setup (Supabase + Vercel)

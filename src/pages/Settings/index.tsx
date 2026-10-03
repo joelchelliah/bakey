@@ -7,11 +7,11 @@ import { Page } from '../../components/Page'
 import { Row, RowValue } from '../../components/Row'
 import { SectionTitle } from '../../components/SectionTitle'
 import { TopBar } from '../../components/TopBar'
+import { exportRecipes, parseBackup } from '../../model'
 import { href } from '../../router'
 import { starterRecipes } from '../../seed'
 import { useStore } from '../../storeContext'
 import { supabase } from '../../supabase'
-import type { Recipe } from '../../types'
 import s from './index.module.css'
 
 const SYNC_LABEL = {
@@ -26,23 +26,9 @@ export function Settings() {
   const file = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState('')
 
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify({ app: 'bakey', version: 1, recipes }, null, 2)], {
-      type: 'application/json',
-    })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `bakey-recipes-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(a.href)
-  }
-
   const importJson = async (f: File) => {
     try {
-      const parsed = JSON.parse(await f.text())
-      const list: Recipe[] = Array.isArray(parsed) ? parsed : parsed.recipes
-      if (!Array.isArray(list) || !list.every((r) => r.id && Array.isArray(r.variants)))
-        throw new Error('Not a Bakey export')
+      const list = parseBackup(await f.text())
       addMany(list)
       setMsg(`Imported ${list.length} recipe${list.length === 1 ? '' : 's'}.`)
     } catch (e) {
@@ -76,7 +62,7 @@ export function Settings() {
 
       <SectionTitle>Backup</SectionTitle>
       <Card>
-        <button className={s.rowButton} onClick={exportJson}>
+        <button className={s.rowButton} onClick={() => exportRecipes(recipes)}>
           Export recipes (JSON)
         </button>
         <button className={s.rowButton} onClick={() => file.current?.click()}>

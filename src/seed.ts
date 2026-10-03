@@ -1,4 +1,5 @@
 import type { Amount, Group, Ingredient, Recipe, Section, Variant } from './types'
+import { newRecipe } from './model'
 import { uid } from './util'
 
 const pct = (value: number): Amount => ({ kind: 'percent', value })
@@ -41,21 +42,8 @@ function variant(
   return { id: uid(), name, hydration, sections: build(keys) }
 }
 
-function recipe(r: Partial<Recipe> & Pick<Recipe, 'name' | 'emoji' | 'mode' | 'variants'>): Recipe {
-  return {
-    id: uid(),
-    notes: '',
-    totalWeight: 1000,
-    portions: 1,
-    portionSize: 100,
-    anchorWeight: 100,
-    showPortions: false,
-    setAsides: [],
-    modifierEnabled: false,
-    modifier: 0,
-    updatedAt: new Date().toISOString(),
-    ...r,
-  }
+function recipe(r: Partial<Recipe> & Pick<Recipe, 'name' | 'emoji' | 'category' | 'mode' | 'variants'>): Recipe {
+  return newRecipe(r)
 }
 
 const breadNotes = (times: string) => `Baking times per weight:

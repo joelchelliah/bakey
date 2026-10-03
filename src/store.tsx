@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { Session } from '@supabase/supabase-js'
 import { authLog } from './authLog'
 import { supabase } from './supabase'
-import { StoreContext, type AuthState, type Store, type SyncState } from './storeContext'
+import { normalizeRecipe, normalizeRecipes } from './model'
+import { RECIPES_KEY, StoreContext, type AuthState, type Store, type SyncState } from './storeContext'
 import type { Recipe } from './types'
 import { readJson, updateById, writeJson } from './util'
 
-const CACHE_KEY = 'bakey.recipes.v1'
 const PENDING_KEY = 'bakey.pending.v1'
 
 type PendingOp = 'upsert' | 'delete'
@@ -16,7 +16,7 @@ interface StoreProviderProps {
 }
 
 export function StoreProvider({ children }: StoreProviderProps) {
-  const [recipes, setRecipes] = useState<Recipe[]>(() => readJson<Recipe[]>(CACHE_KEY, []))
+  const [recipes, setRecipes] = useState<Recipe[]>(() => normalizeRecipes(readJson(RECIPES_KEY, [])))
   const [session, setSession] = useState<Session | null>(null)
   const [auth, setAuth] = useState<AuthState>(supabase ? 'loading' : 'signedIn')
   const [sync, setSync] = useState<SyncState>(supabase ? 'synced' : 'local')
@@ -28,7 +28,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
   const commit = useCallback((next: Recipe[]) => {
     recipesRef.current = next
     setRecipes(next)
-    writeJson(CACHE_KEY, next)
+    writeJson(RECIPES_KEY, next)
   }, [])
 
   const flush = useCallback(async () => {
@@ -75,7 +75,11 @@ export function StoreProvider({ children }: StoreProviderProps) {
       console.warn('Fetch failed', error)
       return
     }
-    const server = new Map(data.map((row) => [row.id as string, row.data as Recipe]))
+    const server = new Map<string, Recipe>()
+    for (const row of data) {
+      const r = normalizeRecipe(row.data)
+      if (r) server.set(r.id, r)
+    }
     // Local changes not yet synced win over the server copy.
     for (const [id, op] of Object.entries(pending.current)) {
       if (op === 'delete') server.delete(id)
@@ -118,15 +122,21 @@ export function StoreProvider({ children }: StoreProviderProps) {
     }
   }, [session, pull])
 
+  // Marked before the change reaches the server, so a pull in between keeps the local copy.
+  const markPending = useCallback((id: string, op: PendingOp) => {
+    if (!supabase) return
+    pending.current[id] = op
+    writeJson(PENDING_KEY, pending.current)
+  }, [])
+
   const queue = useCallback(
     (id: string, op: PendingOp) => {
       if (!supabase) return
-      pending.current[id] = op
-      writeJson(PENDING_KEY, pending.current)
+      markPending(id, op)
       setSync('pending')
       flush()
     },
-    [flush],
+    [markPending, flush],
   )
 
   const save = useCallback(
@@ -145,10 +155,11 @@ export function StoreProvider({ children }: StoreProviderProps) {
     (r: Recipe) => {
       const list = recipesRef.current
       commit(updateById(list, r.id, () => r))
+      markPending(r.id, 'upsert')
       clearTimeout(timers.current[r.id])
       timers.current[r.id] = setTimeout(() => save(recipesRef.current.find((x) => x.id === r.id) ?? r), 800)
     },
-    [commit, save],
+    [commit, markPending, save],
   )
 
   const remove = useCallback(

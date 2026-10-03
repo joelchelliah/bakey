@@ -5,14 +5,14 @@ import { TopBar } from '../../components/TopBar'
 import { href } from '../../router'
 import { starterRecipes } from '../../seed'
 import { useStore } from '../../storeContext'
-import { categories, categoryOf } from '../../types'
+import { categories } from '../../types'
 import type { Category } from '../../types'
 import s from './index.module.css'
 
 export function RecipeList() {
   const { recipes, addMany, sync } = useStore()
   const groups = (Object.keys(categories) as Category[])
-    .map((c) => ({ category: c, items: recipes.filter((r) => categoryOf(r) === c) }))
+    .map((c) => ({ category: c, items: recipes.filter((r) => r.category === c) }))
     .filter((g) => g.items.length > 0)
   return (
     <Page>

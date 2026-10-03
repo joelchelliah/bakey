@@ -1,65 +1,7 @@
-import type { Recipe, Variant } from '../../types'
+import type { Variant } from '../../types'
 import { clone, uid } from '../../util'
 
 export type Dir = -1 | 1
-
-export function newRecipe(): Recipe {
-  return {
-    id: uid(),
-    name: '',
-    emoji: '🍞',
-    category: 'bread',
-    notes: '',
-    mode: 'total',
-    totalWeight: 1000,
-    portions: 1,
-    portionSize: 250,
-    anchorWeight: 100,
-    showPortions: false,
-    setAsides: [],
-    modifierEnabled: false,
-    modifier: 0,
-    updatedAt: new Date().toISOString(),
-    variants: [
-      {
-        id: uid(),
-        name: 'Standard',
-        sections: [
-          {
-            id: uid(),
-            name: '',
-            ingredients: [
-              {
-                id: uid(),
-                name: 'Flour',
-                group: 'flour',
-                amount: { kind: 'percent', value: 100 },
-              },
-              {
-                id: uid(),
-                name: 'Water',
-                group: 'liquid',
-                amount: { kind: 'percent', value: 70 },
-              },
-              {
-                id: uid(),
-                name: 'Salt',
-                group: 'other',
-                amount: { kind: 'percent', value: 2 },
-              },
-              {
-                id: uid(),
-                name: 'Yeast',
-                group: 'other',
-                amount: { kind: 'percent', value: 1 },
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  }
-}
 
 /** Copies a variant with fresh ids, keeping relative references intact. */
 export function copyVariant(v: Variant): Variant {

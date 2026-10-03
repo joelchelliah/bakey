@@ -9,7 +9,7 @@ import { TopBar } from '../../components/TopBar'
 import { WarningList } from '../../components/Warning'
 import { go } from '../../router'
 import { useStore } from '../../storeContext'
-import { categories, categoryOf } from '../../types'
+import { categories } from '../../types'
 import type { Category, Recipe, Section, Variant } from '../../types'
 import { clone, uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
@@ -26,7 +26,7 @@ interface RecipeEditProps {
 
 export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   const { save, remove } = useStore()
-  const [r, setR] = useState<Recipe>(() => ({ ...clone(initial), category: categoryOf(initial) }))
+  const [r, setR] = useState<Recipe>(() => clone(initial))
   const [vid, setVid] = useState(initial.activeVariant ?? initial.variants[0].id)
   const variant = variantOf(r, vid)
   const res = useMemo(() => computeVariant(r, variant), [r, variant])
