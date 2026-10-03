@@ -1,5 +1,5 @@
 import type { Variant } from '../../types'
-import { clone, uid } from '../../util'
+import { clone, swapById, uid } from '../../util'
 
 export type Dir = -1 | 1
 
@@ -27,37 +27,20 @@ export function copyVariant(v: Variant): Variant {
   return c
 }
 
-/** Moves an ingredient within its section, or across into the neighbouring section at the edges. */
-export function moveIngredient(v: Variant, sid: string, iid: string, dir: Dir): Variant {
-  const sections = clone(v.sections)
-  const si = sections.findIndex((s) => s.id === sid)
-  const list = sections[si]?.ingredients ?? []
-  const ii = list.findIndex((i) => i.id === iid)
-  const ing = list[ii]
-  if (!ing) return v
+/** Moves an ingredient to `index` in section `sid` (counted without it), which may be another section. */
+export function placeIngredient(v: Variant, iid: string, sid: string, index: number): Variant {
+  const ing = v.sections.flatMap((s) => s.ingredients).find((i) => i.id === iid)
+  if (!ing || !v.sections.some((s) => s.id === sid)) return v
 
-  list.splice(ii, 1)
-  const to = ii + dir
-  const prev = sections[si - 1]
-  const next = sections[si + 1]
-
-  if (to < 0 && prev) prev.ingredients.push(ing)
-  else if (to > list.length && next) next.ingredients.unshift(ing)
-  else list.splice(Math.max(0, Math.min(list.length, to)), 0, ing)
-
+  const sections = v.sections.map((s) => {
+    const ingredients = s.ingredients.filter((i) => i !== ing)
+    if (s.id === sid) ingredients.splice(index, 0, ing)
+    return { ...s, ingredients }
+  })
   return { ...v, sections }
 }
 
 /** Swaps a section with its neighbour. */
 export function moveSection(v: Variant, sid: string, dir: Dir): Variant {
-  const sections = [...v.sections]
-  const si = sections.findIndex((s) => s.id === sid)
-  const to = si + dir
-  const a = sections[si]
-  const b = sections[to]
-
-  if (!a || !b) return v
-  sections[si] = b
-  sections[to] = a
-  return { ...v, sections }
+  return { ...v, sections: swapById(v.sections, sid, dir) }
 }

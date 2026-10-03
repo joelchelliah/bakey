@@ -11,6 +11,17 @@
   padding-right: 4px;
   gap: 6px;
 }
+.editor > .head > .grip {
+  margin: 0 -8px 0 -12px;
+}
+.dragging {
+  position: relative;
+  z-index: 1;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--bg) 80%, transparent);
+}
 .details {
   padding: 0 0 4px;
 }

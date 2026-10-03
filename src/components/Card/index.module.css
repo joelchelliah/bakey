@@ -5,3 +5,6 @@
   margin-bottom: 12px;
   overflow: hidden;
 }
+.unclipped {
+  overflow: visible;
+}

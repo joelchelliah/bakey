@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { PointerEvent, RefCallback } from 'react'
 import { fmtPct } from '../../calc'
 import { IconButton } from '../../components/Button'
 import { Hint } from '../../components/Hint'
@@ -9,8 +10,7 @@ import { Segmented } from '../../components/Segmented'
 import { Switch } from '../../components/Switch'
 import type { Amount, Group, Ingredient } from '../../types'
 import { cx } from '../../util'
-import { MoveButtons } from './MoveButtons'
-import type { Dir } from './recipe'
+import { Grip } from './Grip'
 import s from './IngredientEditor.module.css'
 
 const KINDS: { kind: Amount['kind']; label: string }[] = [
@@ -32,7 +32,10 @@ interface IngredientEditorProps {
   others: Ingredient[]
   modifierEnabled: boolean
   onChange: (p: Partial<Ingredient>) => void
-  onMove: (dir: Dir) => void
+  dragRef: RefCallback<HTMLElement>
+  dragging: boolean
+  /** Starts a drag from the grip. No grip is shown without it. */
+  onGrab?: (e: PointerEvent) => void
   onDelete: () => void
 }
 
@@ -42,7 +45,9 @@ export function IngredientEditor({
   others,
   modifierEnabled,
   onChange,
-  onMove,
+  dragRef,
+  dragging,
+  onGrab,
   onDelete,
 }: IngredientEditorProps) {
   const [open, setOpen] = useState(!ing.name)
@@ -75,8 +80,9 @@ export function IngredientEditor({
           : ''
 
   return (
-    <div className={cx(s.editor, open && s.open)}>
+    <div ref={dragRef} className={cx(s.editor, open && s.open, dragging && s.dragging)}>
       <Row className={s.head}>
+        {onGrab && <Grip size={18} className={s.grip} onPointerDown={onGrab} />}
         <Input placeholder="Ingredient" value={ing.name} onChange={(e) => onChange({ name: e.target.value })} />
         {a.kind === 'percent' ? (
           <NumField
@@ -145,7 +151,6 @@ export function IngredientEditor({
             </Row>
           )}
           <Row className={cx(s.detail, s.actions)}>
-            <MoveButtons onMove={onMove} />
             <span className={s.grow} />
             <IconButton icon="trash" size={18} danger label="Delete ingredient" onClick={onDelete} />
           </Row>

@@ -1,0 +1,8 @@
+.grip {
+  flex: none;
+  display: inline-flex;
+  padding: 8px;
+  opacity: 0.6;
+  touch-action: none;
+  cursor: grab;
+}

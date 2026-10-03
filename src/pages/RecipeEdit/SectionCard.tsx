@@ -8,6 +8,7 @@ import { AddButton } from './AddButton'
 import { IngredientEditor } from './IngredientEditor'
 import { MoveButtons } from './MoveButtons'
 import type { Dir } from './recipe'
+import type { DragSort } from './useDragSort'
 import s from './SectionCard.module.css'
 
 interface SectionCardProps {
@@ -19,7 +20,10 @@ interface SectionCardProps {
   allIngredients: Ingredient[]
   modifierEnabled: boolean
   onChange: (fn: (s: Section) => Section) => void
-  onMoveIngredient: (ingredientId: string, dir: Dir) => void
+  /** Drag-to-reorder for the ingredients of all sections. */
+  drag: DragSort
+  /** Show the ingredient grips (when there's anywhere to move to). */
+  canDrag: boolean
   /** Moves the whole section up or down. */
   onMove: (dir: Dir) => void
   canMoveUp: boolean
@@ -35,7 +39,8 @@ export function SectionCard({
   allIngredients,
   modifierEnabled,
   onChange,
-  onMoveIngredient,
+  drag,
+  canDrag,
   onMove,
   canMoveUp,
   canMoveDown,
@@ -45,7 +50,7 @@ export function SectionCard({
     onChange((x) => ({ ...x, ingredients: updateById(x.ingredients, iid, patch) }))
 
   return (
-    <Card>
+    <Card ref={drag.list(section.id)} unclipped={!!drag.dragging}>
       {showName && (
         <Row className={s.name}>
           <Input
@@ -73,7 +78,9 @@ export function SectionCard({
           others={allIngredients.filter((x) => x.id !== ing.id)}
           modifierEnabled={modifierEnabled}
           onChange={(patch) => setIng(ing.id, patch)}
-          onMove={(d) => onMoveIngredient(ing.id, d)}
+          dragRef={drag.item(ing.id)}
+          dragging={drag.dragging === ing.id}
+          onGrab={canDrag ? (e) => drag.start(e, ing.id) : undefined}
           onDelete={() =>
             onChange((x) => ({
               ...x,

@@ -10,6 +10,7 @@ const paths = {
   check: 'M20 6L9 17l-5-5',
   copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
   x: 'M18 6L6 18M6 6l12 12',
+  grip: 'M5 8h14M5 12h14M5 16h14',
 } as const
 
 export type IconName = keyof typeof paths

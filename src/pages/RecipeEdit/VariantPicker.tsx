@@ -1,13 +1,12 @@
 import { showsPortions } from '../../calc'
 import { IconButton, TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
-import { Icon } from '../../components/Icon'
 import { Input } from '../../components/Input'
 import { NumField } from '../../components/NumField'
 import { Row } from '../../components/Row'
 import type { Recipe, Variant } from '../../types'
-import { cx } from '../../util'
 import s from './VariantPicker.module.css'
+import { VariantTabs } from './VariantTabs'
 
 interface OverrideRowProps {
   label: string
@@ -43,6 +42,7 @@ interface VariantPickerProps {
   onSelect: (id: string) => void
   onAdd: () => void
   onDelete: () => void
+  onPlace: (id: string, index: number) => void
   onChange: (fn: (v: Variant) => Variant) => void
 }
 
@@ -54,21 +54,13 @@ export function VariantPicker({
   onSelect,
   onAdd,
   onDelete,
+  onPlace,
   onChange,
 }: VariantPickerProps) {
   const { variants } = recipe
   return (
     <>
-      <div className={s.tabs}>
-        {variants.map((v) => (
-          <button key={v.id} className={cx(v.id === variant.id && s.active)} onClick={() => onSelect(v.id)}>
-            {v.name || 'Untitled'}
-          </button>
-        ))}
-        <button aria-label="Add variant" onClick={onAdd}>
-          <Icon name="plus" size={16} />
-        </button>
-      </div>
+      <VariantTabs variants={variants} activeId={variant.id} onSelect={onSelect} onAdd={onAdd} onPlace={onPlace} />
 
       <Card>
         <Row>

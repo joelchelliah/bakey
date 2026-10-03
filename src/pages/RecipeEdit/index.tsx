@@ -11,11 +11,12 @@ import { go } from '../../router'
 import { useStore } from '../../storeContext'
 import { categories } from '../../types'
 import type { Category, Recipe, Section, Variant } from '../../types'
-import { clone, uid, updateById } from '../../util'
+import { clone, placeById, uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
-import { copyVariant, moveIngredient, moveSection } from './recipe'
+import { copyVariant, moveSection, placeIngredient } from './recipe'
 import { ScalingCard } from './ScalingCard'
 import { SectionCard } from './SectionCard'
+import { useDragSort } from './useDragSort'
 import { VariantPicker } from './VariantPicker'
 import s from './index.module.css'
 
@@ -46,6 +47,11 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   ]
   const usesLiquidRemainder = allIngs.some((i) => i.group === 'liquid' && i.amount.kind === 'remainder')
   const multiSection = variant.sections.length > 1
+  const drag = useDragSort(
+    'y',
+    variant.sections.map((x) => ({ id: x.id, items: x.ingredients.map((i) => i.id) })),
+    (iid, sid, index) => setVariant((v) => placeIngredient(v, iid, sid, index)),
+  )
 
   const onSave = () => {
     const out = {
@@ -132,6 +138,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
         onSelect={setVid}
         onAdd={onAddVariant}
         onDelete={onDeleteVariant}
+        onPlace={(id, index) => setR((p) => ({ ...p, variants: placeById(p.variants, id, index) }))}
         onChange={setVariant}
       />
 
@@ -145,7 +152,8 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
           allIngredients={allIngs}
           modifierEnabled={r.modifierEnabled}
           onChange={(fn) => setSection(sec.id, fn)}
-          onMoveIngredient={(iid, dir) => setVariant((v) => moveIngredient(v, sec.id, iid, dir))}
+          drag={drag}
+          canDrag={allIngs.length > 1 || multiSection}
           onMove={(dir) => setVariant((v) => moveSection(v, sec.id, dir))}
           canMoveUp={si > 0}
           canMoveDown={si < variant.sections.length - 1}

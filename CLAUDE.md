@@ -29,7 +29,7 @@ Linting uses Oxlint, not ESLint: typescript-eslint doesn't support TypeScript 7.
 
 ## Testing policy
 
-**Permanent tests cover pure logic only**: `src/calc.test.ts` (the reference values from [Original sheets](#original-sheets) plus the calculation rules, formatting and parsing) and `src/model.test.ts` (normalisation and backups). They run with Vitest as part of `npm run check`.
+**Permanent tests cover pure logic only**: `src/calc.test.ts` (the reference values from [Original sheets](#original-sheets) plus the calculation rules, formatting and parsing) `src/model.test.ts` (normalisation and backups), `src/util.test.ts` and `src/pages/RecipeEdit/recipe.test.ts`. They run with Vitest as part of `npm run check`.
 - Keep them true. When you change behaviour they cover, update or extend the tests in the same change. Never delete, skip or loosen a test just to make it pass. If an expected value looks wrong, ask the user. Lint rejects `.only` and `.skip`.
 - When you add pure logic that's easy to get subtly wrong (to `calc.ts`, `model.ts` or helpers like `RecipeEdit/recipe.ts`), add tests next to it as `<file>.test.ts`.
 - Don't add permanent UI or browser tests. Verify UI with throwaway `playwright-core` scripts in the scratchpad (against a build, see below) at a 390×844 viewport, and delete them along with any test-only dependencies when you're done.
@@ -52,9 +52,9 @@ Linting uses Oxlint, not ESLint: typescript-eslint doesn't support TypeScript 7.
 | `src/supabase.ts` | Supabase client. It is `null` when env vars are missing, which puts the app in local-only mode with no login. |
 | `src/styles/tokens.css` | Colour, radius and font tokens as CSS custom properties. The only place colours are defined. |
 | `src/styles/global.css` | Reset and `body` styles. The only global CSS besides tokens. |
-| `src/pages/<Name>/` | One folder per screen: `RecipeList`, `RecipeView` (the baking screen), `RecipeEdit`, `Settings`, `Login`. Larger screens keep their subcomponents next to `index.tsx` (e.g. `RecipeEdit/IngredientEditor.tsx`), and screen-specific helpers in a plain `.ts` file (e.g. `RecipeEdit/recipe.ts`). |
+| `src/pages/<Name>/` | One folder per screen: `RecipeList`, `RecipeView` (the baking screen), `RecipeEdit`, `Settings`, `Login`. Larger screens keep their subcomponents next to `index.tsx` (e.g. `RecipeEdit/IngredientEditor.tsx`), and screen-specific helpers in a plain `.ts` file (e.g. `RecipeEdit/recipe.ts`). `RecipeEdit/useDragSort.ts` + `Grip.tsx` give drag-to-reorder (variant pills, ingredients, also between sections). |
 | `src/components/<Name>/` | Shared UI: `Page`, `TopBar`, `Card`, `Row`/`RowValue`, `SectionTitle`, `Button` (`IconButton`, `TextButton`, `PrimaryButton`), `Input`/`Select`/`TextArea`, `NumField` (decimal input that accepts a comma or a dot, with an optional stepper), `Segmented`, `Switch`, `Warning`/`WarningList`, `Hint`, `ErrorBoundary` (wraps the whole app in `main.tsx`; its fallback offers Reload, Back to recipes and an export of the raw cache), `Icon` (inline SVG paths). |
-| `src/util.ts` | Small generic helpers: `uid`, `clone`, `cx` and `updateById` (immutable update of one item in an id'd list). |
+| `src/util.ts` | Small generic helpers: `uid`, `clone`, `cx`, `updateById` (immutable update of one item in an id'd list) `swapById` (swap an item with its neighbour) and `placeById` (move an item to an index). |
 | `src/storage.ts` | `keys`, the only place localStorage keys are defined, plus `readJson`/`writeJson`/`removeKey` (never throw) and `clearAllChecked`. |
 | `src/hooks.ts` | `useWakeLock` (always on in `RecipeView`) and `useLocalState` (per-device localStorage state). |
 | `supabase/migrations/` | SQL for the `recipes` table + RLS. |
