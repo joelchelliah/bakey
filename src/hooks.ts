@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { readJson, writeJson } from './util'
 
 /** Keeps the screen on while `enabled` and the page is visible. */
 export function useWakeLock(enabled: boolean) {
@@ -33,16 +34,8 @@ export function useWakeLock(enabled: boolean) {
 
 /** useState persisted in localStorage (per device). */
 export function useLocalState<T>(key: string, initial: T): [T, (v: T) => void] {
-  const read = useCallback(() => {
-    try {
-      const s = localStorage.getItem(key)
-
-      return s ? (JSON.parse(s) as T) : initial
-    } catch {
-      return initial
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
+  // oxlint-disable-next-line react/exhaustive-deps -- `initial` is only the fallback, like useState's
+  const read = useCallback(() => readJson(key, initial), [key])
   const [value, setValue] = useState<T>(read)
 
   useEffect(() => setValue(read()), [read])
@@ -50,12 +43,7 @@ export function useLocalState<T>(key: string, initial: T): [T, (v: T) => void] {
   const set = useCallback(
     (v: T) => {
       setValue(v)
-
-      try {
-        localStorage.setItem(key, JSON.stringify(v))
-      } catch {
-        // ignore
-      }
+      writeJson(key, v)
     },
     [key],
   )

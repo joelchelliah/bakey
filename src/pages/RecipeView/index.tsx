@@ -1,5 +1,13 @@
 import { useMemo } from 'react'
-import { computeVariant, findAnchor, fmtWeight, inputsOf, type OverridableInput } from '../../calc'
+import {
+  computeVariant,
+  findAnchor,
+  fmtWeight,
+  inputsOf,
+  showsPortions,
+  variantOf,
+  type OverridableInput,
+} from '../../calc'
 import { IconButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { NumField } from '../../components/NumField'
@@ -7,11 +15,12 @@ import { Page } from '../../components/Page'
 import { Row, RowValue } from '../../components/Row'
 import { Segmented } from '../../components/Segmented'
 import { TopBar } from '../../components/TopBar'
-import { Warning } from '../../components/Warning'
+import { WarningList } from '../../components/Warning'
 import { useLocalState, useWakeLock } from '../../hooks'
 import { go, href } from '../../router'
 import { useStore } from '../../storeContext'
 import type { Recipe, Variant } from '../../types'
+import { updateById } from '../../util'
 import { IngredientTable } from './IngredientTable'
 import s from './index.module.css'
 
@@ -24,21 +33,18 @@ export function RecipeView({ recipe }: RecipeViewProps) {
   useWakeLock(true)
   const [checked, setChecked] = useLocalState<string[]>(`bakey.checked.${recipe.id}`, [])
 
-  const variant = recipe.variants.find((v) => v.id === recipe.activeVariant) ?? recipe.variants[0]
+  const variant = variantOf(recipe)
   const res = useMemo(() => computeVariant(recipe, variant), [recipe, variant])
   const anchor = recipe.mode === 'anchor' ? findAnchor(recipe, variant) : undefined
   const update = (patch: Partial<Recipe>) => saveSoon({ ...recipe, ...patch })
-  const setVariant = (patch: Partial<Variant>) =>
-    update({
-      variants: recipe.variants.map((v) => (v.id === variant.id ? { ...v, ...patch } : v)),
-    })
+  const setVariant = (patch: Partial<Variant>) => update({ variants: updateById(recipe.variants, variant.id, patch) })
   const inputs = inputsOf(recipe, variant)
   // An input the variant overrides is saved on the variant, otherwise on the recipe.
   const setInput = (key: OverridableInput, n: number) =>
     variant[key] !== undefined ? setVariant({ [key]: n }) : update({ [key]: n })
 
   const toggle = (id: string) => setChecked(checked.includes(id) ? checked.filter((x) => x !== id) : [...checked, id])
-  const showPortions = recipe.mode === 'portions' || recipe.showPortions
+  const showPortions = showsPortions(recipe)
 
   return (
     <Page>
@@ -113,13 +119,7 @@ export function RecipeView({ recipe }: RecipeViewProps) {
         )}
       </Card>
 
-      {res.errors.length > 0 && (
-        <Warning>
-          {res.errors.map((e) => (
-            <div key={e}>⚠️ {e}</div>
-          ))}
-        </Warning>
-      )}
+      <WarningList messages={res.errors} />
 
       <IngredientTable recipe={recipe} variant={variant} res={res} checked={checked} onToggle={toggle} />
       <div className={s.tableNote}>
@@ -145,11 +145,7 @@ export function RecipeView({ recipe }: RecipeViewProps) {
             <Row as="label" key={a.id} label={a.label || 'Set aside'}>
               <NumField
                 value={a.weight}
-                onChange={(n) =>
-                  update({
-                    setAsides: recipe.setAsides.map((x) => (x.id === a.id ? { ...x, weight: n } : x)),
-                  })
-                }
+                onChange={(n) => update({ setAsides: updateById(recipe.setAsides, a.id, { weight: n }) })}
                 suffix="g"
                 min={0}
               />

@@ -1,3 +1,4 @@
+import { showsPortions } from '../../calc'
 import { IconButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Input, Select } from '../../components/Input'
@@ -6,7 +7,7 @@ import { Row } from '../../components/Row'
 import { Segmented } from '../../components/Segmented'
 import { Switch } from '../../components/Switch'
 import type { Recipe, ScalingMode } from '../../types'
-import { uid } from '../../util'
+import { uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
 import s from './ScalingCard.module.css'
 
@@ -44,21 +45,19 @@ export function ScalingCard({ r, set, anchorOptions }: ScalingCardProps) {
           <Switch checked={r.showPortions} onChange={(showPortions) => set({ showPortions })} />
         </Row>
       )}
-      {(r.mode === 'portions' || r.showPortions) && (
+      {showsPortions(r) && (
         <>
           {setAsides.map((a) => (
             <Row key={a.id}>
               <Input
                 placeholder="Set-aside portion (e.g. 👶 Baby)"
                 value={a.label}
-                onChange={(e) =>
-                  set({ setAsides: setAsides.map((x) => (x.id === a.id ? { ...x, label: e.target.value } : x)) })
-                }
+                onChange={(e) => set({ setAsides: updateById(setAsides, a.id, { label: e.target.value }) })}
               />
               <NumField
                 value={a.weight}
                 suffix="g"
-                onChange={(n) => set({ setAsides: setAsides.map((x) => (x.id === a.id ? { ...x, weight: n } : x)) })}
+                onChange={(n) => set({ setAsides: updateById(setAsides, a.id, { weight: n }) })}
               />
               <IconButton
                 icon="x"

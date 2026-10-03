@@ -9,6 +9,8 @@ import { Segmented } from '../../components/Segmented'
 import { Switch } from '../../components/Switch'
 import type { Amount, Group, Ingredient } from '../../types'
 import { cx } from '../../util'
+import { MoveButtons } from './MoveButtons'
+import type { Dir } from './recipe'
 import s from './IngredientEditor.module.css'
 
 const KINDS: { kind: Amount['kind']; label: string }[] = [
@@ -30,7 +32,7 @@ interface IngredientEditorProps {
   others: Ingredient[]
   modifierEnabled: boolean
   onChange: (p: Partial<Ingredient>) => void
-  onMove: (d: -1 | 1) => void
+  onMove: (dir: Dir) => void
   onDelete: () => void
 }
 
@@ -143,8 +145,7 @@ export function IngredientEditor({
             </Row>
           )}
           <Row className={cx(s.detail, s.actions)}>
-            <IconButton icon="up" size={18} label="Move up" onClick={() => onMove(-1)} />
-            <IconButton icon="down" size={18} label="Move down" onClick={() => onMove(1)} />
+            <MoveButtons onMove={onMove} />
             <span className={s.grow} />
             <IconButton icon="trash" size={18} danger label="Delete ingredient" onClick={onDelete} />
           </Row>

@@ -3,9 +3,11 @@ import { Card } from '../../components/Card'
 import { Input } from '../../components/Input'
 import { Row } from '../../components/Row'
 import type { Ingredient, Section } from '../../types'
-import { uid } from '../../util'
+import { uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
 import { IngredientEditor } from './IngredientEditor'
+import { MoveButtons } from './MoveButtons'
+import type { Dir } from './recipe'
 import s from './SectionCard.module.css'
 
 interface SectionCardProps {
@@ -17,9 +19,9 @@ interface SectionCardProps {
   allIngredients: Ingredient[]
   modifierEnabled: boolean
   onChange: (fn: (s: Section) => Section) => void
-  onMoveIngredient: (ingredientId: string, dir: -1 | 1) => void
+  onMoveIngredient: (ingredientId: string, dir: Dir) => void
   /** Moves the whole section up or down. */
-  onMove: (dir: -1 | 1) => void
+  onMove: (dir: Dir) => void
   canMoveUp: boolean
   canMoveDown: boolean
   onDelete: () => void
@@ -40,10 +42,7 @@ export function SectionCard({
   onDelete,
 }: SectionCardProps) {
   const setIng = (iid: string, patch: Partial<Ingredient>) =>
-    onChange((x) => ({
-      ...x,
-      ingredients: x.ingredients.map((i) => (i.id === iid ? { ...i, ...patch } : i)),
-    }))
+    onChange((x) => ({ ...x, ingredients: updateById(x.ingredients, iid, patch) }))
 
   return (
     <Card>
@@ -54,14 +53,7 @@ export function SectionCard({
             value={section.name}
             onChange={(e) => onChange((x) => ({ ...x, name: e.target.value }))}
           />
-          <IconButton icon="up" size={18} label="Move section up" disabled={!canMoveUp} onClick={() => onMove(-1)} />
-          <IconButton
-            icon="down"
-            size={18}
-            label="Move section down"
-            disabled={!canMoveDown}
-            onClick={() => onMove(1)}
-          />
+          <MoveButtons what="section" onMove={onMove} canMoveUp={canMoveUp} canMoveDown={canMoveDown} />
           <IconButton
             icon="trash"
             size={18}

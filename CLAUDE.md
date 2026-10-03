@@ -37,15 +37,16 @@ To verify calculations, use the reference values in [Original sheets](#original-
 | File | Purpose |
 | --- | --- |
 | `src/types.ts` | Data model (`Recipe`, `Variant`, `Section`, `Ingredient`, `Amount`). Percentages are in percent units (72 = 72%). Also `categories` (list grouping, in display order) and `categoryOf()`, which maps a missing or unknown category to `other`. |
-| `src/calc.ts` | Pure calculation engine (`computeVariant`) plus number formatting and parsing. |
+| `src/calc.ts` | Pure calculation engine (`computeVariant`), recipe helpers shared by screens (`variantOf`, `inputsOf`, `findAnchor`, `showsPortions`), plus number formatting and parsing. |
 | `src/seed.ts` | Starter recipes converted from the original Numbers sheets. |
 | `src/store.tsx` | `StoreProvider`: recipes, auth, a localStorage cache, the offline write queue and Supabase sync. |
 | `src/storeContext.ts` | The `Store` interface, its context and `useStore()`. Kept out of `store.tsx` so that file only exports components (Fast Refresh). |
 | `src/supabase.ts` | Supabase client. It is `null` when env vars are missing, which puts the app in local-only mode with no login. |
 | `src/styles/tokens.css` | Colour, radius and font tokens as CSS custom properties. The only place colours are defined. |
 | `src/styles/global.css` | Reset and `body` styles. The only global CSS besides tokens. |
-| `src/pages/<Name>/` | One folder per screen: `RecipeList`, `RecipeView` (the baking screen), `RecipeEdit`, `Settings`, `Login`. Larger screens keep their subcomponents next to `index.tsx` (e.g. `RecipeEdit/IngredientEditor.tsx`). |
-| `src/components/<Name>/` | Shared UI: `Page`, `TopBar`, `Card`, `Row`/`RowValue`, `SectionTitle`, `Button` (`IconButton`, `TextButton`, `PrimaryButton`), `Input`/`Select`/`TextArea`, `NumField` (decimal input that accepts a comma or a dot, with an optional stepper), `Segmented`, `Switch`, `Warning`, `Hint`, `Icon` (inline SVG paths). |
+| `src/pages/<Name>/` | One folder per screen: `RecipeList`, `RecipeView` (the baking screen), `RecipeEdit`, `Settings`, `Login`. Larger screens keep their subcomponents next to `index.tsx` (e.g. `RecipeEdit/IngredientEditor.tsx`), and screen-specific helpers in a plain `.ts` file (e.g. `RecipeEdit/recipe.ts`). |
+| `src/components/<Name>/` | Shared UI: `Page`, `TopBar`, `Card`, `Row`/`RowValue`, `SectionTitle`, `Button` (`IconButton`, `TextButton`, `PrimaryButton`), `Input`/`Select`/`TextArea`, `NumField` (decimal input that accepts a comma or a dot, with an optional stepper), `Segmented`, `Switch`, `Warning`/`WarningList`, `Hint`, `Icon` (inline SVG paths). |
+| `src/util.ts` | Small generic helpers: `uid`, `clone`, `cx`, `updateById` (immutable update of one item in an id'd list) and `readJson`/`writeJson` (localStorage that never throws). |
 | `src/hooks.ts` | `useWakeLock` (always on in `RecipeView`) and `useLocalState` (per-device localStorage state). |
 | `supabase/migrations/` | SQL for the `recipes` table + RLS. |
 
@@ -53,6 +54,13 @@ To verify calculations, use the reference values in [Original sheets](#original-
 
 - Every component that takes props declares a named `<Component>Props` interface directly above it (e.g. `AddButtonProps`), never inline object types or a generic `Props`. Put per-prop doc comments on the interface fields.
 - Components without props (e.g. `Settings`) need no interface.
+
+## Reuse
+
+- Before writing a helper or component, check `src/util.ts`, `src/calc.ts`, `src/hooks.ts` and `src/components/` for one that already does it.
+- Don't extract something that is used once. When the same pattern shows up a second or third time, weigh extracting it: it's worth it when it names a rule that must stay consistent (e.g. `showsPortions`, `variantOf`) or removes real noise (e.g. `updateById`, `WarningList`). It isn't worth it when the shared version needs more options than the copies it replaces.
+- Put an extraction where its users are: next to the screen if only one screen uses it (e.g. `RecipeEdit/MoveButtons.tsx`), in `src/components/` once two screens do, and in `util.ts`/`calc.ts`/`hooks.ts` for non-UI code. Pure recipe logic belongs in `calc.ts`, not in components.
+- When you add a shared helper, update the [Code map](#code-map).
 
 ## Styling
 

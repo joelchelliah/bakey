@@ -36,6 +36,18 @@ export function findAnchor(recipe: Recipe, v: Variant): Ingredient | undefined {
   return list.find((i) => i.name.trim().toLowerCase() === name) ?? list.find((i) => i.amount.kind !== 'toTaste')
 }
 
+/** The variant with `id`, falling back to the first one. */
+export function variantOf(recipe: Recipe, id = recipe.activeVariant): Variant {
+  return recipe.variants.find((v) => v.id === id) ?? recipe.variants[0]
+}
+
+/** Whether portion inputs and outputs apply: always in portions mode, otherwise when switched on. */
+export function showsPortions(recipe: Recipe): boolean {
+  return recipe.mode === 'portions' || recipe.showPortions
+}
+
+const sum = (ns: (number | null)[]) => ns.reduce<number>((s, n) => s + (n ?? 0), 0)
+
 export type OverridableInput = 'portions' | 'portionSize' | 'modifier'
 
 /** The recipe's portions, portion size and modifier, with the variant's overrides applied. */
@@ -93,16 +105,16 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
           p = NaN
           break
         }
-        let sum = 0
+        let filled = 0
         for (const { ing: o } of items) {
           if (o.id === ing.id || o.group !== ing.group) continue
           if (o.amount.kind === 'remainder') {
             errors.push(`Only one remainder allowed in the ${ing.group} group`)
             continue
           }
-          sum += pctOf(o) ?? 0
+          filled += pctOf(o) ?? 0
         }
-        p = t - sum
+        p = t - filled
         if (p < 0)
           errors.push(`"${ing.name}" is negative (${round(p, 2)}%) — the ${ing.group} group exceeds its target`)
         break
@@ -120,7 +132,7 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
     return { ing, sectionId, pct, effectivePct }
   })
 
-  const totalPct = pcts.reduce((s, x) => s + (x.effectivePct ?? 0), 0)
+  const totalPct = sum(pcts.map((x) => x.effectivePct))
 
   let base: number
   if (recipe.mode === 'anchor') {
@@ -141,11 +153,11 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
     weight: x.effectivePct === null ? null : (x.effectivePct / 100) * base,
   }))
 
-  const totalWeight = rows.reduce((s, r) => s + (r.weight ?? 0), 0)
+  const totalWeight = sum(rows.map((r) => r.weight))
   const sections = v.sections.map((s) => ({
     id: s.id,
     name: s.name,
-    weight: rows.filter((r) => r.sectionId === s.id).reduce((t, r) => t + (r.weight ?? 0), 0),
+    weight: sum(rows.filter((r) => r.sectionId === s.id).map((r) => r.weight)),
   }))
 
   const result: VariantResult = {
@@ -156,11 +168,10 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
     base,
     errors: [...new Set(errors)],
   }
-  const hasPortions = recipe.mode === 'portions' || recipe.showPortions
-  if (hasPortions && inputs.portions > 0) {
+  if (showsPortions(recipe) && inputs.portions > 0) {
     result.portionSize = totalWeight / inputs.portions
     if (recipe.setAsides.length) {
-      const reserved = recipe.setAsides.reduce((s, a) => s + (a.weight || 0), 0)
+      const reserved = sum(recipe.setAsides.map((a) => a.weight || 0))
       result.remainingPortionSize = (totalWeight - reserved) / inputs.portions
     }
   }

@@ -4,28 +4,12 @@ import { authLog } from './authLog'
 import { supabase } from './supabase'
 import { StoreContext, type AuthState, type Store, type SyncState } from './storeContext'
 import type { Recipe } from './types'
+import { readJson, updateById, writeJson } from './util'
 
 const CACHE_KEY = 'bakey.recipes.v1'
 const PENDING_KEY = 'bakey.pending.v1'
 
 type PendingOp = 'upsert' | 'delete'
-
-function readJson<T>(key: string, fallback: T): T {
-  try {
-    const s = localStorage.getItem(key)
-    return s ? (JSON.parse(s) as T) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function writeJson(key: string, value: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // storage unavailable (private mode / quota) – keep working in memory
-  }
-}
 
 interface StoreProviderProps {
   children: ReactNode
@@ -151,7 +135,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
       const updated = { ...r, updatedAt: new Date().toISOString() }
       const list = recipesRef.current
       const exists = list.some((x) => x.id === r.id)
-      commit(exists ? list.map((x) => (x.id === r.id ? updated : x)) : [...list, updated])
+      commit(exists ? updateById(list, r.id, () => updated) : [...list, updated])
       queue(r.id, 'upsert')
     },
     [commit, queue],
@@ -160,7 +144,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
   const saveSoon = useCallback(
     (r: Recipe) => {
       const list = recipesRef.current
-      commit(list.map((x) => (x.id === r.id ? r : x)))
+      commit(updateById(list, r.id, () => r))
       clearTimeout(timers.current[r.id])
       timers.current[r.id] = setTimeout(() => save(recipesRef.current.find((x) => x.id === r.id) ?? r), 800)
     },

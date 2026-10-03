@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react'
-import { allIngredients, computeVariant, fmtPct } from '../../calc'
+import { allIngredients, computeVariant, fmtPct, variantOf } from '../../calc'
 import { TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Input, Select, TextArea } from '../../components/Input'
 import { Page } from '../../components/Page'
 import { SectionTitle } from '../../components/SectionTitle'
 import { TopBar } from '../../components/TopBar'
-import { Warning } from '../../components/Warning'
+import { WarningList } from '../../components/Warning'
 import { go } from '../../router'
 import { useStore } from '../../storeContext'
 import { categories, categoryOf } from '../../types'
 import type { Category, Recipe, Section, Variant } from '../../types'
-import { clone, uid } from '../../util'
+import { clone, uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
 import { copyVariant, moveIngredient, moveSection } from './recipe'
 import { ScalingCard } from './ScalingCard'
@@ -28,21 +28,15 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   const { save, remove } = useStore()
   const [r, setR] = useState<Recipe>(() => ({ ...clone(initial), category: categoryOf(initial) }))
   const [vid, setVid] = useState(initial.activeVariant ?? initial.variants[0].id)
-  const variant = r.variants.find((v) => v.id === vid) ?? r.variants[0]
+  const variant = variantOf(r, vid)
   const res = useMemo(() => computeVariant(r, variant), [r, variant])
   const pctById = new Map(res.rows.map((x) => [x.ingredient.id, x.pct]))
 
   const set = (patch: Partial<Recipe>) => setR((p) => ({ ...p, ...patch }))
   const setVariant = (fn: (v: Variant) => Variant) =>
-    setR((p) => ({
-      ...p,
-      variants: p.variants.map((v) => (v.id === variant.id ? fn(v) : v)),
-    }))
+    setR((p) => ({ ...p, variants: updateById(p.variants, variant.id, fn) }))
   const setSection = (sid: string, fn: (s: Section) => Section) =>
-    setVariant((v) => ({
-      ...v,
-      sections: v.sections.map((x) => (x.id === sid ? fn(x) : x)),
-    }))
+    setVariant((v) => ({ ...v, sections: updateById(v.sections, sid, fn) }))
 
   const allIngs = allIngredients(variant).map((x) => x.ing)
   const anchorOptions = [
@@ -170,13 +164,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
         Section (e.g. poolish, roux)
       </AddButton>
 
-      {res.errors.length > 0 && (
-        <Warning>
-          {res.errors.map((e) => (
-            <div key={e}>⚠️ {e}</div>
-          ))}
-        </Warning>
-      )}
+      <WarningList messages={res.errors} />
       <div className={s.total}>Total: {fmtPct(res.totalPct)}</div>
 
       <SectionTitle>Notes</SectionTitle>

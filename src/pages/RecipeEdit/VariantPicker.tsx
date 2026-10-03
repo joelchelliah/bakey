@@ -1,3 +1,4 @@
+import { showsPortions } from '../../calc'
 import { IconButton, TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Icon } from '../../components/Icon'
@@ -56,7 +57,6 @@ export function VariantPicker({
   onChange,
 }: VariantPickerProps) {
   const { variants } = recipe
-  const showPortions = recipe.mode === 'portions' || recipe.showPortions
   return (
     <>
       <div className={s.tabs}>
@@ -89,7 +89,7 @@ export function VariantPicker({
           suffix="%"
           onChange={(n) => onChange((v) => ({ ...v, hydration: n }))}
         />
-        {showPortions && (
+        {showsPortions(recipe) && (
           <OverrideRow
             label="Portions"
             sub="instead of the recipe's"

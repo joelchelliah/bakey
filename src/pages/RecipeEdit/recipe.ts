@@ -1,6 +1,8 @@
 import type { Recipe, Variant } from '../../types'
 import { clone, uid } from '../../util'
 
+export type Dir = -1 | 1
+
 export function newRecipe(): Recipe {
   return {
     id: uid(),
@@ -84,7 +86,7 @@ export function copyVariant(v: Variant): Variant {
 }
 
 /** Moves an ingredient within its section, or across into the neighbouring section at the edges. */
-export function moveIngredient(v: Variant, sid: string, iid: string, dir: -1 | 1): Variant {
+export function moveIngredient(v: Variant, sid: string, iid: string, dir: Dir): Variant {
   const sections = clone(v.sections)
   const si = sections.findIndex((s) => s.id === sid)
   const list = sections[si].ingredients
@@ -100,7 +102,7 @@ export function moveIngredient(v: Variant, sid: string, iid: string, dir: -1 | 1
 }
 
 /** Swaps a section with its neighbour. */
-export function moveSection(v: Variant, sid: string, dir: -1 | 1): Variant {
+export function moveSection(v: Variant, sid: string, dir: Dir): Variant {
   const sections = [...v.sections]
   const si = sections.findIndex((s) => s.id === sid)
   const to = si + dir
