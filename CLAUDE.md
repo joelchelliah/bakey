@@ -45,7 +45,7 @@ Linting uses Oxlint, not ESLint: typescript-eslint doesn't support TypeScript 7.
 | --- | --- |
 | `src/types.ts` | Data model (`Recipe`, `Variant`, `Section`, `Ingredient`, `Amount`). Percentages are in percent units (72 = 72%). Also `categories` (list grouping, in display order). |
 | `src/model.ts` | `newRecipe()` (the single source of recipe defaults, also used by `seed.ts`), `normalizeRecipe(s)` and the backup format (`exportRecipes`, `parseBackup`). |
-| `src/calc.ts` | Pure calculation engine (`computeVariant`), recipe helpers shared by screens (`variantOf`, `inputsOf`, `findAnchor`, `showsPortions`), plus number formatting and parsing. |
+| `src/calc.ts` | Pure calculation engine (`computeVariant`), recipe helpers shared by screens (`variantOf`, `inputsOf`, `findAnchor`, `showsPortions`, `usesAmounts`, `unitOf`), plus number formatting and parsing. |
 | `src/seed.ts` | Starter recipes converted from the original Numbers sheets. |
 | `src/store.tsx` | `StoreProvider`: recipes, auth, a localStorage cache, the offline write queue and Supabase sync. |
 | `src/storeContext.ts` | The `Store` interface, its context and `useStore()`. Kept out of `store.tsx` so that file only exports components (Fast Refresh). |
@@ -84,10 +84,12 @@ Linting uses Oxlint, not ESLint: typescript-eslint doesn't support TypeScript 7.
   - `total`: `base = totalWeight / Σ effective% × 100`.
   - `portions`: the total is `portions × portionSize`, then the same as `total`.
   - `anchor`: `base = anchorWeight / anchor% × 100`. The anchor ingredient is matched **by name** (`recipe.anchorName`) so it works across variants.
+  - **Scaling by amount** (`anchor` mode with `anchorBy: 'amount'`, see `usesAmounts()`): the recipe is written in fixed amounts instead of percentages. Every amount is multiplied by `anchorAmount / the anchor's written amount` (e.g. written for 3 bananas, baked with 4). Only `fixed` and `toTaste` ingredients fit; others get a warning, as do `fixed` ingredients in percentage modes. Units can differ, so there are no percentages, totals, section subtotals, groups, hydration, portions or set-asides. The modifier still applies.
 - **Amount kinds**:
   - `percent`: a fixed percentage.
   - `remainder`: fills its group up to the target. The flour target is 100%; the liquid target is `variant.hydration`. Only one remainder is allowed per group.
   - `relative`: `factor`% of another ingredient's percentage, referenced by id.
+  - `fixed`: an amount in a unit (`units` in `types.ts`: g, pcs, tsp, …), only when scaling by amount.
   - `toTaste`: no amount; it doesn't count toward totals.
 - **Groups** (`flour` / `liquid` / `other`) exist only to resolve remainders.
 - **Modifier:** when it's enabled, ingredients flagged `modified` get `pct × (1 + modifier/100)` *before* the totals and base are computed.

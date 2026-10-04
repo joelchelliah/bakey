@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { allIngredients, computeVariant, fmtPct, variantOf } from '../../calc'
+import { allIngredients, computeVariant, fmtPct, usesAmounts, variantOf } from '../../calc'
 import { TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Input, Select, TextArea } from '../../components/Input'
@@ -46,6 +46,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
     ...new Set(r.variants.flatMap((v) => allIngredients(v).map((x) => x.ing.name)).filter(Boolean)),
   ]
   const usesLiquidRemainder = allIngs.some((i) => i.group === 'liquid' && i.amount.kind === 'remainder')
+  const amounts = usesAmounts(r)
   const multiSection = variant.sections.length > 1
   const drag = useDragSort(
     'y',
@@ -151,6 +152,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
           pctById={pctById}
           allIngredients={allIngs}
           modifierEnabled={r.modifierEnabled}
+          amounts={amounts}
           onChange={(fn) => setSection(sec.id, fn)}
           drag={drag}
           canDrag={allIngs.length > 1 || multiSection}
@@ -178,7 +180,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
       </AddButton>
 
       <WarningList messages={res.errors} />
-      <div className={s.total}>Total: {fmtPct(res.totalPct)}</div>
+      {!amounts && <div className={s.total}>Total: {fmtPct(res.totalPct)}</div>}
 
       <SectionTitle>Notes</SectionTitle>
       <Card>

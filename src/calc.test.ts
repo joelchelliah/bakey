@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeVariant, fmtPct, fmtWeight, parseNum, type VariantResult } from './calc'
+import { computeVariant, fmtAmount, fmtPct, fmtWeight, parseNum, showsPortions, type VariantResult } from './calc'
 import { newRecipe } from './model'
 import { starterRecipes } from './seed'
 import type { Ingredient, Recipe } from './types'
@@ -148,7 +148,70 @@ describe('calculation rules', () => {
   })
 })
 
+describe('scaling by amount', () => {
+  const amounts = { mode: 'anchor', anchorBy: 'amount', anchorName: 'Bananas', anchorAmount: 4 } as const
+  const bread: Omit<Ingredient, 'id'>[] = [
+    { name: 'Bananas', group: 'other', amount: { kind: 'fixed', value: 3, unit: 'pcs' } },
+    { name: 'Flour', group: 'other', amount: { kind: 'fixed', value: 240, unit: 'g' } },
+    { name: 'Cinnamon', group: 'other', amount: { kind: 'fixed', value: 1.5, unit: 'tsp' }, modified: true },
+    { name: 'Salt', group: 'other', amount: { kind: 'toTaste' } },
+  ]
+
+  it('multiplies every amount by the anchor amount over the written amount', () => {
+    const res = recipeWith(bread, amounts)
+    expect(res.errors).toEqual([])
+    expect(weight(res, 'Bananas')).toBeCloseTo(4, 6)
+    expect(weight(res, 'Flour')).toBeCloseTo(320, 6)
+    expect(weight(res, 'Cinnamon')).toBeCloseTo(2, 6)
+    expect(weight(res, 'Salt')).toBeNull()
+    expect(res.rows.every((r) => r.pct === null)).toBe(true)
+  })
+
+  it('applies the modifier to modified amounts only', () => {
+    const res = recipeWith(bread, { ...amounts, modifierEnabled: true, modifier: 50 })
+    expect(weight(res, 'Flour')).toBeCloseTo(320, 6)
+    expect(weight(res, 'Cinnamon')).toBeCloseTo(3, 6)
+  })
+
+  it('a modified anchor still comes out at the entered amount', () => {
+    const [bananas, ...rest] = bread
+    if (!bananas) throw new Error('No bananas')
+    const ings = [{ ...bananas, modified: true }, ...rest]
+    const res = recipeWith(ings, { ...amounts, modifierEnabled: true, modifier: 50 })
+    expect(weight(res, 'Bananas')).toBeCloseTo(4, 6)
+    expect(weight(res, 'Flour')).toBeCloseTo(213.33, 2)
+  })
+
+  it('warns about ingredients that do not fit the mode, both ways', () => {
+    const percent: Omit<Ingredient, 'id'> = { name: 'Water', group: 'liquid', amount: { kind: 'percent', value: 70 } }
+    expect(recipeWith([...bread, percent], amounts).errors).toEqual(['"Water" needs an amount'])
+    expect(recipeWith([percent, ...bread], { mode: 'anchor', anchorName: 'Water' }).errors).toContain(
+      '"Flour" needs a percentage',
+    )
+  })
+
+  it('warns when the anchor has no amount to scale from', () => {
+    const [bananas, ...rest] = bread
+    if (!bananas) throw new Error('No bananas')
+    const ings = [{ ...bananas, amount: { kind: 'fixed', value: 0, unit: 'pcs' } as const }, ...rest]
+    expect(recipeWith(ings, amounts).errors).toEqual(['"Bananas" needs an amount to scale from'])
+  })
+
+  it('never shows portions', () => {
+    expect(showsPortions(newRecipe({ ...amounts, showPortions: true }))).toBe(false)
+    expect(showsPortions(newRecipe({ mode: 'anchor', showPortions: true }))).toBe(true)
+  })
+})
+
 describe('formatting and parsing', () => {
+  it('formats amounts: grams like weights, other units with up to 2 decimals', () => {
+    expect(fmtAmount(123.4, 'g')).toBe('123')
+    expect(fmtAmount(2.666, 'pcs')).toBe('2.67')
+    expect(fmtAmount(0.25, 'tsp')).toBe('0.25')
+    expect(fmtAmount(3, 'tbs')).toBe('3')
+    expect(fmtAmount(null, 'tsp')).toBe('—')
+  })
+
   it('rounds weights to 2 dp below 1 g, 1 dp below 50 g and whole grams above', () => {
     expect(fmtWeight(0.456)).toBe('0.46')
     expect(fmtWeight(12.34)).toBe('12.3')

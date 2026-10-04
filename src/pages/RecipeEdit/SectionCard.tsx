@@ -19,6 +19,8 @@ interface SectionCardProps {
   pctById: Map<string, number | null>
   allIngredients: Ingredient[]
   modifierEnabled: boolean
+  /** The recipe scales by amount (see `usesAmounts`). */
+  amounts: boolean
   onChange: (fn: (s: Section) => Section) => void
   /** Drag-to-reorder for the ingredients of all sections. */
   drag: DragSort
@@ -38,6 +40,7 @@ export function SectionCard({
   pctById,
   allIngredients,
   modifierEnabled,
+  amounts,
   onChange,
   drag,
   canDrag,
@@ -77,6 +80,7 @@ export function SectionCard({
           computedPct={pctById.get(ing.id) ?? null}
           others={allIngredients.filter((x) => x.id !== ing.id)}
           modifierEnabled={modifierEnabled}
+          amounts={amounts}
           onChange={(patch) => setIng(ing.id, patch)}
           dragRef={drag.item(ing.id)}
           dragging={drag.dragging === ing.id}
@@ -99,7 +103,7 @@ export function SectionCard({
                 id: uid(),
                 name: '',
                 group: 'other',
-                amount: { kind: 'percent', value: 0 },
+                amount: amounts ? { kind: 'fixed', value: 0, unit: 'g' } : { kind: 'percent', value: 0 },
               },
             ],
           }))

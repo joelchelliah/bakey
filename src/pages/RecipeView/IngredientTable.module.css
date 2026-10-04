@@ -97,3 +97,19 @@
 .foot > :nth-child(3) {
   font-size: 20px;
 }
+
+/* Scaling by amount: no percentage column, and the unit after each amount. */
+.amounts .row {
+  grid-template-columns: 1fr auto;
+}
+.weight small {
+  margin-left: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.weight sup {
+  color: var(--accent);
+  font-size: 14px;
+  margin-right: 2px;
+}

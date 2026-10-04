@@ -8,16 +8,17 @@ import { NumField } from '../../components/NumField'
 import { Row } from '../../components/Row'
 import { Segmented } from '../../components/Segmented'
 import { Switch } from '../../components/Switch'
-import type { Amount, Group, Ingredient } from '../../types'
+import { units, type Amount, type Group, type Ingredient, type Unit } from '../../types'
 import { cx } from '../../util'
 import { Grip } from './Grip'
 import s from './IngredientEditor.module.css'
 
-const KINDS: { kind: Amount['kind']; label: string }[] = [
-  { kind: 'percent', label: 'Percent' },
-  { kind: 'remainder', label: 'Remainder of group' },
-  { kind: 'relative', label: '% of another ingredient' },
-  { kind: 'toTaste', label: 'To taste (no amount)' },
+const KINDS: { kind: Amount['kind']; label: string; amounts: boolean }[] = [
+  { kind: 'percent', label: 'Percent', amounts: false },
+  { kind: 'remainder', label: 'Remainder of group', amounts: false },
+  { kind: 'relative', label: '% of another ingredient', amounts: false },
+  { kind: 'fixed', label: 'Fixed', amounts: true },
+  { kind: 'toTaste', label: 'To taste (no amount)', amounts: true },
 ]
 
 const GROUPS: { value: Group; label: string }[] = [
@@ -31,6 +32,8 @@ interface IngredientEditorProps {
   computedPct: number | null
   others: Ingredient[]
   modifierEnabled: boolean
+  /** The recipe scales by amount: offer fixed amounts and units instead of percentages and groups. */
+  amounts: boolean
   onChange: (p: Partial<Ingredient>) => void
   dragRef: RefCallback<HTMLElement>
   dragging: boolean
@@ -44,13 +47,14 @@ export function IngredientEditor({
   computedPct,
   others,
   modifierEnabled,
+  amounts,
   onChange,
   dragRef,
   dragging,
   onGrab,
   onDelete,
 }: IngredientEditorProps) {
-  const [open, setOpen] = useState(!ing.name)
+  const [open, setOpen] = useState(false)
   const a = ing.amount
 
   const setKind = (kind: Amount['kind']) => {
@@ -64,7 +68,9 @@ export function IngredientEditor({
           }
         : kind === 'relative'
           ? { kind, of: others[0]?.id ?? '', factor: 100 }
-          : { kind }
+          : kind === 'fixed'
+            ? { kind, value: 0, unit: 'g' }
+            : { kind }
     const patch: Partial<Ingredient> = { amount: next }
     if (kind === 'remainder' && ing.group === 'other') patch.group = 'flour'
     onChange(patch)
@@ -91,6 +97,13 @@ export function IngredientEditor({
             suffix="%"
             onChange={(n) => onChange({ amount: { kind: 'percent', value: n } })}
           />
+        ) : a.kind === 'fixed' ? (
+          <NumField
+            narrow
+            value={a.value}
+            suffix={units[a.unit][0]}
+            onChange={(n) => onChange({ amount: { ...a, value: n } })}
+          />
         ) : (
           <button type="button" className={s.computed} onClick={() => setOpen(true)}>
             <small>{summary}</small>
@@ -103,7 +116,7 @@ export function IngredientEditor({
         <div className={s.details}>
           <Row as="label" label="Amount" className={s.detail}>
             <Select className={s.select} value={a.kind} onChange={(e) => setKind(e.target.value as Amount['kind'])}>
-              {KINDS.map((k) => (
+              {KINDS.filter((k) => k.amounts === amounts || k.kind === a.kind).map((k) => (
                 <option key={k.kind} value={k.kind}>
                   {k.label}
                 </option>
@@ -127,16 +140,33 @@ export function IngredientEditor({
               </Select>
             </Row>
           )}
-          <Row label="Group" className={s.detail}>
-            <Segmented
-              small
-              className={s.grow}
-              options={GROUPS}
-              value={ing.group}
-              onChange={(group) => onChange({ group })}
-            />
-          </Row>
-          {a.kind === 'remainder' && (
+          {a.kind === 'fixed' && (
+            <Row as="label" label="Unit" className={s.detail}>
+              <Select
+                className={s.select}
+                value={a.unit}
+                onChange={(e) => onChange({ amount: { ...a, unit: e.target.value as Unit } })}
+              >
+                {Object.entries(units).map(([value, [, label]]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+            </Row>
+          )}
+          {!amounts && (
+            <Row label="Group" className={s.detail}>
+              <Segmented
+                small
+                className={s.grow}
+                options={GROUPS}
+                value={ing.group}
+                onChange={(group) => onChange({ group })}
+              />
+            </Row>
+          )}
+          {a.kind === 'remainder' && !amounts && (
             <Hint>
               {ing.group === 'flour'
                 ? 'Fills the flour group up to 100%.'

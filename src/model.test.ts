@@ -35,9 +35,37 @@ describe('normalizeRecipe', () => {
       ],
     })
     expect(r).toMatchObject({ mode: 'total', category: 'other', totalWeight: 1000 })
+    expect(normalizeRecipe({ id: 'a', anchorBy: 'volume', anchorAmount: 'two' })).toMatchObject({
+      anchorBy: 'weight',
+      anchorAmount: 1,
+    })
     expect(r?.setAsides).toEqual([{ id: expect.any(String), label: 'Baby', weight: 165 }])
     expect(r?.variants[0]?.sections[0]?.ingredients).toEqual([
       { id: expect.any(String), name: 'Water', group: 'other', amount: { kind: 'percent', value: 0 } },
+    ])
+  })
+
+  it('normalizes fixed amounts, falling back to grams for an unknown unit', () => {
+    const r = normalizeRecipe({
+      id: 'a',
+      variants: [
+        {
+          id: 'v',
+          sections: [
+            {
+              id: 's',
+              ingredients: [
+                { id: 'i', name: 'Bananas', amount: { kind: 'fixed', value: 3, unit: 'pcs' } },
+                { id: 'j', name: 'Milk', amount: { kind: 'fixed', value: 'lots', unit: 'cups' } },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    expect(r?.variants[0]?.sections[0]?.ingredients.map((i) => i.amount)).toEqual([
+      { kind: 'fixed', value: 3, unit: 'pcs' },
+      { kind: 'fixed', value: 0, unit: 'g' },
     ])
   })
 

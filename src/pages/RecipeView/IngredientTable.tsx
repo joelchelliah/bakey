@@ -1,7 +1,7 @@
-import { fmtPct, fmtWeight, inputsOf, type VariantResult } from '../../calc'
+import { fmtAmount, fmtPct, fmtWeight, inputsOf, unitOf, usesAmounts, type VariantResult } from '../../calc'
 import { Card } from '../../components/Card'
 import { Icon } from '../../components/Icon'
-import type { Recipe, Variant } from '../../types'
+import { units, type Recipe, type Variant } from '../../types'
 import { cx } from '../../util'
 import s from './IngredientTable.module.css'
 
@@ -17,13 +17,16 @@ interface IngredientTableProps {
 export function IngredientTable({ recipe, variant, res, checked, onToggle }: IngredientTableProps) {
   const namedSections = variant.sections.length > 1 || variant.sections.some((x) => x.name)
   const modifierShown = recipe.modifierEnabled && inputsOf(recipe, variant).modifier !== 0
+  // Amounts can be in different units, so there are no percentages or totals.
+  const amounts = usesAmounts(recipe)
+  const mark = (r: VariantResult['rows'][number]) => r.ingredient.modified && modifierShown && <sup>*</sup>
 
   return (
-    <Card className={s.table}>
+    <Card className={cx(s.table, amounts && s.amounts)}>
       <div className={cx(s.row, s.head)}>
         <span>Ingredient</span>
-        <span>Percentage</span>
-        <span>Weight</span>
+        {!amounts && <span>Percentage</span>}
+        <span>{amounts ? 'Amount' : 'Weight'}</span>
       </div>
       {variant.sections.map((sec) => {
         const rows = res.rows.filter((r) => r.sectionId === sec.id)
@@ -33,8 +36,8 @@ export function IngredientTable({ recipe, variant, res, checked, onToggle }: Ing
             {namedSections && (
               <div className={cx(s.row, s.sub)}>
                 <span>{sec.name || 'Dough'}</span>
-                <span />
-                <span>{sres && fmtWeight(sres.weight)}</span>
+                {!amounts && <span />}
+                {!amounts && <span>{sres && fmtWeight(sres.weight)}</span>}
               </div>
             )}
             {rows.map((r) => {
@@ -50,22 +53,34 @@ export function IngredientTable({ recipe, variant, res, checked, onToggle }: Ing
                     <span className={s.tick}>{done && <Icon name="check" size={14} />}</span>
                     {r.ingredient.name}
                   </span>
-                  <span className={s.pct}>
-                    {fmtPct(r.pct)}
-                    {r.ingredient.modified && modifierShown && <sup>*</sup>}
-                  </span>
-                  <span className={s.weight}>{fmtWeight(r.weight)}</span>
+                  {amounts ? (
+                    <span className={s.weight}>
+                      {mark(r)}
+                      {fmtAmount(r.weight, unitOf(r.ingredient))}
+                      {r.weight !== null && <small>{units[unitOf(r.ingredient)][0]}</small>}
+                    </span>
+                  ) : (
+                    <>
+                      <span className={s.pct}>
+                        {fmtPct(r.pct)}
+                        {mark(r)}
+                      </span>
+                      <span className={s.weight}>{fmtWeight(r.weight)}</span>
+                    </>
+                  )}
                 </button>
               )
             })}
           </div>
         )
       })}
-      <div className={cx(s.row, s.foot)}>
-        <span>Total</span>
-        <span>{fmtPct(res.totalPct)}</span>
-        <span>{fmtWeight(res.totalWeight)}</span>
-      </div>
+      {!amounts && (
+        <div className={cx(s.row, s.foot)}>
+          <span>Total</span>
+          <span>{fmtPct(res.totalPct)}</span>
+          <span>{fmtWeight(res.totalWeight)}</span>
+        </div>
+      )}
     </Card>
   )
 }

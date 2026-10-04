@@ -1,11 +1,11 @@
-import type { Ingredient, Recipe, Variant } from './types'
+import type { Ingredient, Recipe, Unit, Variant } from './types'
 
 export interface IngredientResult {
   ingredient: Ingredient
   sectionId: string
-  pct: number | null // base percentage (before modifier); null = to taste
+  pct: number | null // base percentage (before modifier); null = to taste, or scaling by amount
   effectivePct: number | null // after modifier
-  weight: number | null
+  weight: number | null // grams; in the ingredient's own unit when scaling by amount
   error?: string
 }
 
@@ -20,7 +20,7 @@ export interface VariantResult {
   sections: SectionResult[]
   totalPct: number
   totalWeight: number
-  base: number
+  base: number // grams per 100%; the scale factor when scaling by amount
   portionSize?: number
   remainingPortionSize?: number // after set-aside portions
   errors: string[]
@@ -36,6 +36,16 @@ export function findAnchor(recipe: Recipe, v: Variant): Ingredient | undefined {
   return list.find((i) => i.name.trim().toLowerCase() === name) ?? list.find((i) => i.amount.kind !== 'toTaste')
 }
 
+/** Whether the recipe is written in fixed amounts (scaled by one ingredient's amount) instead of percentages. */
+export function usesAmounts(recipe: Recipe): boolean {
+  return recipe.mode === 'anchor' && recipe.anchorBy === 'amount'
+}
+
+/** The unit an ingredient is measured in: its own for a fixed amount, otherwise grams. */
+export function unitOf(ing: Ingredient): Unit {
+  return ing.amount.kind === 'fixed' ? ing.amount.unit : 'g'
+}
+
 /** The variant with `id`, falling back to the first one. */
 export function variantOf(recipe: Recipe, id = recipe.activeVariant): Variant {
   const v = recipe.variants.find((x) => x.id === id) ?? recipe.variants[0]
@@ -44,9 +54,9 @@ export function variantOf(recipe: Recipe, id = recipe.activeVariant): Variant {
   return v
 }
 
-/** Whether portion inputs and outputs apply: always in portions mode, otherwise when switched on. */
+/** Whether portion inputs and outputs apply: always in portions mode, otherwise when switched on (never with amounts). */
 export function showsPortions(recipe: Recipe): boolean {
-  return recipe.mode === 'portions' || recipe.showPortions
+  return recipe.mode === 'portions' || (recipe.showPortions && !usesAmounts(recipe))
 }
 
 const sum = (ns: (number | null)[]) => ns.reduce<number>((s, n) => s + (n ?? 0), 0)
@@ -63,6 +73,7 @@ export function inputsOf(recipe: Recipe, v: Variant): Record<OverridableInput, n
 }
 
 export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
+  if (usesAmounts(recipe)) return computeAmounts(recipe, v)
   const inputs = inputsOf(recipe, v)
   const items = allIngredients(v)
   const byId = new Map(items.map((x) => [x.ing.id, x.ing]))
@@ -89,6 +100,10 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
         break
       case 'toTaste':
         p = null
+        break
+      case 'fixed':
+        errors.push(`"${ing.name}" needs a percentage`)
+        p = NaN
         break
       case 'relative': {
         const ref = byId.get(a.of)
@@ -181,6 +196,50 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
   return result
 }
 
+/**
+ * Scaling by amount: every amount is multiplied by the anchor amount over the anchor's written amount. There are no
+ * percentages, totals or portions, since the units can differ.
+ */
+function computeAmounts(recipe: Recipe, v: Variant): VariantResult {
+  const items = allIngredients(v)
+  const errors: string[] = []
+  const mod = recipe.modifierEnabled ? 1 + inputsOf(recipe, v).modifier / 100 : 1
+  const amounts = items.map(({ ing }) => {
+    const a = ing.amount
+    if (a.kind === 'toTaste') return null
+    if (a.kind !== 'fixed') {
+      errors.push(`"${ing.name}" needs an amount`)
+      return NaN
+    }
+    return ing.modified ? a.value * mod : a.value
+  })
+
+  const anchor = findAnchor(recipe, v)
+  const written = anchor ? amounts[items.findIndex((x) => x.ing.id === anchor.id)] : undefined
+  if (!anchor) errors.push('No anchor ingredient')
+  else if (anchor.amount.kind === 'fixed' && !written) errors.push(`"${anchor.name}" needs an amount to scale from`)
+  const factor = written ? recipe.anchorAmount / written : NaN
+
+  const rows: IngredientResult[] = items.map(({ ing, sectionId }, i) => {
+    const amount = amounts[i] ?? null
+    return {
+      ingredient: ing,
+      sectionId,
+      pct: null,
+      effectivePct: null,
+      weight: amount === null ? null : amount * factor,
+    }
+  })
+  return {
+    rows,
+    sections: v.sections.map((s) => ({ id: s.id, name: s.name, weight: NaN })),
+    totalPct: NaN,
+    totalWeight: NaN,
+    base: factor,
+    errors: [...new Set(errors)],
+  }
+}
+
 export function round(n: number, dp: number) {
   const f = 10 ** dp
   return Math.round(n * f) / f
@@ -193,6 +252,12 @@ export function fmtWeight(g: number | null): string {
   const a = Math.abs(g)
   const dp = a < 1 ? 2 : a < 50 ? 1 : 0
   return round(g, dp).toFixed(dp).replace(/\.0+$/, '')
+}
+
+/** An amount in `unit`: grams as in `fmtWeight`, other units (spoons, pieces) with up to 2 decimals. */
+export function fmtAmount(n: number | null, unit: Unit): string {
+  if (unit === 'g' || n === null || !Number.isFinite(n)) return fmtWeight(n)
+  return String(round(n, 2))
 }
 
 export function fmtPct(p: number | null): string {

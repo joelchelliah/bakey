@@ -5,6 +5,8 @@ import {
   fmtWeight,
   inputsOf,
   showsPortions,
+  unitOf,
+  usesAmounts,
   variantOf,
   type OverridableInput,
 } from '../../calc'
@@ -20,7 +22,7 @@ import { useLocalState, useWakeLock } from '../../hooks'
 import { go, href } from '../../router'
 import { keys } from '../../storage'
 import { useStore } from '../../storeContext'
-import type { Recipe, Variant } from '../../types'
+import { units, type Recipe, type Variant } from '../../types'
 import { updateById } from '../../util'
 import { IngredientTable } from './IngredientTable'
 import s from './index.module.css'
@@ -37,6 +39,9 @@ export function RecipeView({ recipe }: RecipeViewProps) {
   const variant = variantOf(recipe)
   const res = useMemo(() => computeVariant(recipe, variant), [recipe, variant])
   const anchor = recipe.mode === 'anchor' ? findAnchor(recipe, variant) : undefined
+  const anchorLabel = anchor?.name.toLowerCase() ?? 'anchor'
+  const amounts = usesAmounts(recipe)
+  const anchorUnit = anchor ? unitOf(anchor) : 'g'
   const update = (patch: Partial<Recipe>) => saveSoon({ ...recipe, ...patch })
   const setVariant = (patch: Partial<Variant>) => update({ variants: updateById(recipe.variants, variant.id, patch) })
   const inputs = inputsOf(recipe, variant)
@@ -82,9 +87,23 @@ export function RecipeView({ recipe }: RecipeViewProps) {
             />
           </Row>
         )}
-        {recipe.mode === 'anchor' && (
-          <Row as="label" label={`Weight of ${anchor?.name.toLowerCase() ?? 'anchor'}`}>
+        {recipe.mode === 'anchor' && !amounts && (
+          <Row as="label" label={`Weight of ${anchorLabel}`}>
             <NumField value={recipe.anchorWeight} onChange={(n) => update({ anchorWeight: n })} suffix="g" min={0} />
+          </Row>
+        )}
+        {amounts && (
+          <Row
+            as="label"
+            label={`${anchorUnit === 'g' ? 'Weight' : anchorUnit === 'pcs' ? 'Number' : 'Amount'} of ${anchorLabel}`}
+          >
+            <NumField
+              value={recipe.anchorAmount}
+              onChange={(n) => update({ anchorAmount: n })}
+              suffix={anchorUnit === 'pcs' ? undefined : units[anchorUnit][0]}
+              stepper={anchorUnit === 'pcs'}
+              min={0}
+            />
           </Row>
         )}
         {showPortions && (
@@ -103,7 +122,7 @@ export function RecipeView({ recipe }: RecipeViewProps) {
             />
           </Row>
         )}
-        {variant.hydration !== undefined && (
+        {variant.hydration !== undefined && !amounts && (
           <Row as="label" label="Hydration">
             <NumField value={variant.hydration} onChange={(n) => setVariant({ hydration: n })} suffix="%" />
           </Row>

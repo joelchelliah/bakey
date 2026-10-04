@@ -1,4 +1,14 @@
-import { categories, type Amount, type Group, type Ingredient, type Recipe, type ScalingMode } from './types'
+import {
+  categories,
+  type AnchorBy,
+  type Amount,
+  type Group,
+  type Ingredient,
+  type Recipe,
+  type ScalingMode,
+  type Unit,
+  units,
+} from './types'
 import { uid } from './util'
 
 /** A new recipe with every field filled in; `r` overrides the defaults. */
@@ -13,7 +23,9 @@ export function newRecipe(r: Partial<Recipe> = {}): Recipe {
     totalWeight: 1000,
     portions: 1,
     portionSize: 250,
+    anchorBy: 'weight',
     anchorWeight: 100,
+    anchorAmount: 1,
     showPortions: false,
     setAsides: [],
     modifierEnabled: false,
@@ -55,10 +67,13 @@ const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T)
 const listOf = <T>(v: unknown, fn: (x: Raw) => T): T[] => (Array.isArray(v) ? v.filter(isObj).map(fn) : [])
 
 const MODES: ScalingMode[] = ['total', 'portions', 'anchor']
+const ANCHOR_BY: AnchorBy[] = ['weight', 'amount']
+const UNITS = Object.keys(units) as Unit[]
 const GROUPS: Group[] = ['flour', 'liquid', 'other']
 
 function amount(a: unknown): Amount {
   if (isObj(a) && a.kind === 'relative') return { kind: 'relative', of: str(a.of), factor: num(a.factor, 100) }
+  if (isObj(a) && a.kind === 'fixed') return { kind: 'fixed', value: num(a.value, 0), unit: oneOf(a.unit, UNITS, 'g') }
   if (isObj(a) && (a.kind === 'remainder' || a.kind === 'toTaste')) return { kind: a.kind }
   return { kind: 'percent', value: isObj(a) ? num(a.value, 0) : 0 }
 }
@@ -105,10 +120,12 @@ export function normalizeRecipe(raw: unknown): Recipe | null {
     notes: str(raw.notes),
     mode: oneOf(raw.mode, MODES, d.mode),
     anchorName: optStr(raw.anchorName),
+    anchorBy: oneOf(raw.anchorBy, ANCHOR_BY, d.anchorBy),
     totalWeight: num(raw.totalWeight, d.totalWeight),
     portions: num(raw.portions, d.portions),
     portionSize: num(raw.portionSize, d.portionSize),
     anchorWeight: num(raw.anchorWeight, d.anchorWeight),
+    anchorAmount: num(raw.anchorAmount, d.anchorAmount),
     showPortions: raw.showPortions === true,
     setAsides: listOf(raw.setAsides, (a) => ({ ...a, id: id(a.id), label: str(a.label), weight: num(a.weight, 0) })),
     modifierEnabled: raw.modifierEnabled === true,

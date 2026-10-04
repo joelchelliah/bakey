@@ -1,4 +1,4 @@
-import { showsPortions } from '../../calc'
+import { showsPortions, usesAmounts } from '../../calc'
 import { IconButton, TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Input } from '../../components/Input'
@@ -73,14 +73,16 @@ export function VariantPicker({
             <IconButton icon="trash" size={18} danger label="Delete variant" onClick={onDelete} />
           )}
         </Row>
-        <OverrideRow
-          label="Hydration"
-          sub={usesLiquidRemainder ? 'target for the liquid remainder' : 'optional'}
-          value={variant.hydration}
-          initial={70}
-          suffix="%"
-          onChange={(n) => onChange((v) => ({ ...v, hydration: n }))}
-        />
+        {!usesAmounts(recipe) && (
+          <OverrideRow
+            label="Hydration"
+            sub={usesLiquidRemainder ? 'target for the liquid remainder' : 'optional'}
+            value={variant.hydration}
+            initial={70}
+            suffix="%"
+            onChange={(n) => onChange((v) => ({ ...v, hydration: n }))}
+          />
+        )}
         {showsPortions(recipe) && (
           <OverrideRow
             label="Portions"

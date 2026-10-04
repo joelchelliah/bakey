@@ -5,6 +5,25 @@ export type ScalingMode =
   | 'portions' // input: portions × portion size
   | 'anchor' // input: weight of one ingredient (e.g. eggs)
 
+/**
+ * In 'anchor' mode: 'weight' scales percentages from the anchor's weight; 'amount' scales fixed amounts (in any unit)
+ * by the anchor's amount over the amount the recipe is written for.
+ */
+export type AnchorBy = 'weight' | 'amount'
+
+/** Units for fixed amounts, with their abbreviation and label. */
+export const units = {
+  g: ['g', 'Grams'],
+  ml: ['ml', 'Millilitres'],
+  dl: ['dl', 'Decilitres'],
+  pcs: ['pcs', 'Pieces'],
+  tsp: ['tsp', 'Teaspoons'],
+  tbs: ['tbs', 'Tablespoons'],
+  pinch: ['pinch', 'Pinches'],
+} as const
+
+export type Unit = keyof typeof units
+
 export type Group = 'flour' | 'liquid' | 'other'
 
 /** Recipe categories in list order, with their labels. */
@@ -16,6 +35,7 @@ export type Amount =
   | { kind: 'percent'; value: number }
   | { kind: 'remainder' } // fills its group up to the target (flour: 100%, liquid: hydration)
   | { kind: 'relative'; of: string; factor: number } // factor (in %) of another ingredient's percentage
+  | { kind: 'fixed'; value: number; unit: Unit } // only when scaling by amount
   | { kind: 'toTaste' }
 
 export interface Ingredient {
@@ -57,12 +77,14 @@ export interface Recipe {
   notes: string
   mode: ScalingMode
   anchorName?: string // ingredient name used as anchor in 'anchor' mode (matched per variant)
+  anchorBy: AnchorBy
   // Remembered inputs (updated from the recipe view)
   totalWeight: number
   portions: number
   portionSize: number
   anchorWeight: number
-  showPortions: boolean // in 'total'/'anchor' mode: show portion size output
+  anchorAmount: number // in the anchor's unit, when anchorBy = 'amount'
+  showPortions: boolean // in 'total'/'anchor' mode: show portion size output (never when scaling by amount)
   setAsides: SetAside[]
   modifierEnabled: boolean
   modifier: number // percent, e.g. -15

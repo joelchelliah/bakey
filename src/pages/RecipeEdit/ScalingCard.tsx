@@ -1,4 +1,4 @@
-import { showsPortions } from '../../calc'
+import { showsPortions, usesAmounts } from '../../calc'
 import { IconButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Input, Select } from '../../components/Input'
@@ -6,7 +6,7 @@ import { NumField } from '../../components/NumField'
 import { Row } from '../../components/Row'
 import { Segmented } from '../../components/Segmented'
 import { Switch } from '../../components/Switch'
-import type { Recipe, ScalingMode } from '../../types'
+import type { AnchorBy, Recipe, ScalingMode } from '../../types'
 import { uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
 import s from './ScalingCard.module.css'
@@ -15,6 +15,11 @@ const MODES: { value: ScalingMode; label: string }[] = [
   { value: 'total', label: 'Total weight' },
   { value: 'portions', label: 'Portions' },
   { value: 'anchor', label: 'One ingredient' },
+]
+
+const ANCHOR_BY: { value: AnchorBy; label: string }[] = [
+  { value: 'weight', label: 'Weight' },
+  { value: 'amount', label: 'Amount' },
 ]
 
 interface ScalingCardProps {
@@ -40,7 +45,12 @@ export function ScalingCard({ r, set, anchorOptions }: ScalingCardProps) {
           </Select>
         </Row>
       )}
-      {r.mode !== 'portions' && (
+      {r.mode === 'anchor' && (
+        <Row label="Scale by">
+          <Segmented small options={ANCHOR_BY} value={r.anchorBy} onChange={(anchorBy) => set({ anchorBy })} />
+        </Row>
+      )}
+      {r.mode !== 'portions' && !usesAmounts(r) && (
         <Row as="label" label="Show portions">
           <Switch checked={r.showPortions} onChange={(showPortions) => set({ showPortions })} />
         </Row>
