@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { authLog } from './authLog'
 import { supabase } from './supabase'
 import { normalizeRecipe, normalizeRecipes } from './model'
-import { clearAllChecked, keys, readJson, removeKey, writeJson } from './storage'
+import { clearRecipeState, keys, readJson, removeKey, writeJson } from './storage'
 import { StoreContext, type AuthState, type Store, type SyncState } from './storeContext'
 import type { Recipe } from './types'
 import { updateById } from './util'
@@ -166,6 +166,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
       clearTimeout(timers.current[id])
       commit(recipesRef.current.filter((x) => x.id !== id))
       removeKey(keys.checked(id))
+      removeKey(keys.amount(id))
       queue(id, 'delete')
     },
     [commit, queue],
@@ -185,7 +186,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
     commit([])
     pending.current = {}
     writeJson(keys.pending, {})
-    clearAllChecked()
+    clearRecipeState()
   }, [commit])
 
   const sorted = useMemo(() => recipes.toSorted((a, b) => a.name.localeCompare(b.name)), [recipes])

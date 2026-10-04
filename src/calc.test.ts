@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { computeVariant, fmtAmount, fmtPct, fmtWeight, parseNum, showsPortions, type VariantResult } from './calc'
+import {
+  anchorMismatches,
+  computeVariant,
+  fmtAmount,
+  fmtPct,
+  fmtWeight,
+  parseNum,
+  showsPortions,
+  type VariantResult,
+} from './calc'
 import { newRecipe } from './model'
 import { starterRecipes } from './seed'
-import type { Ingredient, Recipe } from './types'
+import type { Ingredient, Recipe, Variant } from './types'
 
 function starter(name: string): Recipe {
   const r = starterRecipes().find((x) => x.name.startsWith(name))
@@ -78,13 +87,13 @@ describe('reference values from the original sheets', () => {
 })
 
 /** A total-weight recipe of 1000 g with one variant made of the given ingredients. */
-function recipeWith(ingredients: Omit<Ingredient, 'id'>[], patch: Partial<Recipe> = {}) {
+function recipeWith(ingredients: Omit<Ingredient, 'id'>[], patch: Partial<Recipe> = {}, anchorAmount?: number) {
   const r = newRecipe({ totalWeight: 1000, ...patch })
   const v = r.variants[0]
   const s = v?.sections[0]
   if (!v || !s) throw new Error('newRecipe() has no variant')
   s.ingredients = ingredients.map((i) => ({ ...i, id: i.name }))
-  return computeVariant(r, v)
+  return computeVariant(r, v, anchorAmount)
 }
 
 describe('calculation rules', () => {
@@ -148,8 +157,22 @@ describe('calculation rules', () => {
   })
 })
 
+const bananaVariant = (name: string, bananas: number): Variant => ({
+  id: name,
+  name,
+  sections: [
+    {
+      id: 's',
+      name: '',
+      ingredients: [
+        { id: 'b', name: 'bananas', group: 'other', amount: { kind: 'fixed', value: bananas, unit: 'pcs' } },
+      ],
+    },
+  ],
+})
+
 describe('scaling by amount', () => {
-  const amounts = { mode: 'anchor', anchorBy: 'amount', anchorName: 'Bananas', anchorAmount: 4 } as const
+  const amounts = { mode: 'anchor', anchorBy: 'amount', anchorName: 'Bananas', defaultAmount: 3 } as const
   const bread: Omit<Ingredient, 'id'>[] = [
     { name: 'Bananas', group: 'other', amount: { kind: 'fixed', value: 3, unit: 'pcs' } },
     { name: 'Flour', group: 'other', amount: { kind: 'fixed', value: 240, unit: 'g' } },
@@ -157,8 +180,15 @@ describe('scaling by amount', () => {
     { name: 'Salt', group: 'other', amount: { kind: 'toTaste' } },
   ]
 
-  it('multiplies every amount by the anchor amount over the written amount', () => {
+  it('opens as written, at the default amount', () => {
     const res = recipeWith(bread, amounts)
+    expect(res.errors).toEqual([])
+    expect(weight(res, 'Bananas')).toBeCloseTo(3, 6)
+    expect(weight(res, 'Flour')).toBeCloseTo(240, 6)
+  })
+
+  it('multiplies every amount by the anchor amount over the default amount', () => {
+    const res = recipeWith(bread, amounts, 4)
     expect(res.errors).toEqual([])
     expect(weight(res, 'Bananas')).toBeCloseTo(4, 6)
     expect(weight(res, 'Flour')).toBeCloseTo(320, 6)
@@ -167,8 +197,14 @@ describe('scaling by amount', () => {
     expect(res.rows.every((r) => r.pct === null)).toBe(true)
   })
 
+  it('bakes with the given anchor amount instead of the default', () => {
+    const res = recipeWith(bread, amounts, 6)
+    expect(weight(res, 'Bananas')).toBeCloseTo(6, 6)
+    expect(weight(res, 'Flour')).toBeCloseTo(480, 6)
+  })
+
   it('applies the modifier to modified amounts only', () => {
-    const res = recipeWith(bread, { ...amounts, modifierEnabled: true, modifier: 50 })
+    const res = recipeWith(bread, { ...amounts, modifierEnabled: true, modifier: 50 }, 4)
     expect(weight(res, 'Flour')).toBeCloseTo(320, 6)
     expect(weight(res, 'Cinnamon')).toBeCloseTo(3, 6)
   })
@@ -177,7 +213,7 @@ describe('scaling by amount', () => {
     const [bananas, ...rest] = bread
     if (!bananas) throw new Error('No bananas')
     const ings = [{ ...bananas, modified: true }, ...rest]
-    const res = recipeWith(ings, { ...amounts, modifierEnabled: true, modifier: 50 })
+    const res = recipeWith(ings, { ...amounts, modifierEnabled: true, modifier: 50 }, 4)
     expect(weight(res, 'Bananas')).toBeCloseTo(4, 6)
     expect(weight(res, 'Flour')).toBeCloseTo(213.33, 2)
   })
@@ -190,11 +226,17 @@ describe('scaling by amount', () => {
     )
   })
 
-  it('warns when the anchor has no amount to scale from', () => {
-    const [bananas, ...rest] = bread
-    if (!bananas) throw new Error('No bananas')
-    const ings = [{ ...bananas, amount: { kind: 'fixed', value: 0, unit: 'pcs' } as const }, ...rest]
-    expect(recipeWith(ings, amounts).errors).toEqual(['"Bananas" needs an amount to scale from'])
+  it('finds variants whose anchor does not match the default amount', () => {
+    const r = newRecipe({ ...amounts, variants: [bananaVariant('A', 3), bananaVariant('B', 4)] })
+    expect(anchorMismatches(r)).toEqual(['"bananas" in B should be 3, the default amount'])
+    expect(anchorMismatches(r, [bananaVariant('A', 3)])).toEqual([])
+    expect(anchorMismatches({ ...r, anchorBy: 'weight' })).toEqual([])
+  })
+
+  it('warns when the default amount is not above 0', () => {
+    const res = recipeWith(bread.slice(1), { ...amounts, anchorName: 'Flour', defaultAmount: 0 }, 4)
+    expect(res.errors).toContain('The default amount needs to be above 0')
+    expect(weight(res, 'Flour')).toBeNaN()
   })
 
   it('never shows portions', () => {

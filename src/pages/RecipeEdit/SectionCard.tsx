@@ -21,6 +21,8 @@ interface SectionCardProps {
   modifierEnabled: boolean
   /** The recipe scales by amount (see `usesAmounts`). */
   amounts: boolean
+  /** The anchor ingredient whose amount is the recipe's default amount (scaling by amount only). */
+  anchorId?: string
   onChange: (fn: (s: Section) => Section) => void
   /** Drag-to-reorder for the ingredients of all sections. */
   drag: DragSort
@@ -41,6 +43,7 @@ export function SectionCard({
   allIngredients,
   modifierEnabled,
   amounts,
+  anchorId,
   onChange,
   drag,
   canDrag,
@@ -81,6 +84,7 @@ export function SectionCard({
           others={allIngredients.filter((x) => x.id !== ing.id)}
           modifierEnabled={modifierEnabled}
           amounts={amounts}
+          isAnchor={ing.id === anchorId}
           onChange={(patch) => setIng(ing.id, patch)}
           dragRef={drag.item(ing.id)}
           dragging={drag.dragging === ing.id}

@@ -1,4 +1,5 @@
 const CHECKED_PREFIX = 'bakey.checked.'
+const AMOUNT_PREFIX = 'bakey.amount.'
 
 /** Every localStorage key the app uses. All are per device. */
 export const keys = {
@@ -8,6 +9,8 @@ export const keys = {
   pending: 'bakey.pending.v1',
   /** Ticked ingredients on a recipe's checklist. */
   checked: (recipeId: string) => `${CHECKED_PREFIX}${recipeId}`,
+  /** Last anchor amount used on a recipe that scales by amount. */
+  amount: (recipeId: string) => `${AMOUNT_PREFIX}${recipeId}`,
   /** Last email used to sign in. Stored as a plain string, not JSON. */
   email: 'bakey.email',
   /** Temporary auth debug log (see authLog.ts). */
@@ -39,11 +42,11 @@ export function removeKey(key: string) {
   }
 }
 
-/** Removes the checklist ticks of every recipe. */
-export function clearAllChecked() {
+/** Removes the per-recipe state (checklist ticks, last amounts) of every recipe. */
+export function clearRecipeState() {
   try {
     Object.keys(localStorage)
-      .filter((k) => k.startsWith(CHECKED_PREFIX))
+      .filter((k) => k.startsWith(CHECKED_PREFIX) || k.startsWith(AMOUNT_PREFIX))
       .forEach(removeKey)
   } catch {
     // storage unavailable – nothing to remove

@@ -35,9 +35,9 @@ describe('normalizeRecipe', () => {
       ],
     })
     expect(r).toMatchObject({ mode: 'total', category: 'other', totalWeight: 1000 })
-    expect(normalizeRecipe({ id: 'a', anchorBy: 'volume', anchorAmount: 'two' })).toMatchObject({
+    expect(normalizeRecipe({ id: 'a', anchorBy: 'volume', defaultAmount: 'two' })).toMatchObject({
       anchorBy: 'weight',
-      anchorAmount: 1,
+      defaultAmount: 1,
     })
     expect(r?.setAsides).toEqual([{ id: expect.any(String), label: 'Baby', weight: 165 }])
     expect(r?.variants[0]?.sections[0]?.ingredients).toEqual([

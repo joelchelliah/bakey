@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import {
+  anchorMismatches,
   computeVariant,
   findAnchor,
   fmtWeight,
@@ -35,9 +36,10 @@ export function RecipeView({ recipe }: RecipeViewProps) {
   const { saveSoon } = useStore()
   useWakeLock(true)
   const [checked, setChecked] = useLocalState<string[]>(keys.checked(recipe.id), [])
+  const [anchorAmount, setAnchorAmount] = useLocalState(keys.amount(recipe.id), recipe.defaultAmount)
 
   const variant = variantOf(recipe)
-  const res = useMemo(() => computeVariant(recipe, variant), [recipe, variant])
+  const res = useMemo(() => computeVariant(recipe, variant, anchorAmount), [recipe, variant, anchorAmount])
   const anchor = recipe.mode === 'anchor' ? findAnchor(recipe, variant) : undefined
   const anchorLabel = anchor?.name.toLowerCase() ?? 'anchor'
   const amounts = usesAmounts(recipe)
@@ -98,8 +100,8 @@ export function RecipeView({ recipe }: RecipeViewProps) {
             label={`${anchorUnit === 'g' ? 'Weight' : anchorUnit === 'pcs' ? 'Number' : 'Amount'} of ${anchorLabel}`}
           >
             <NumField
-              value={recipe.anchorAmount}
-              onChange={(n) => update({ anchorAmount: n })}
+              value={anchorAmount}
+              onChange={setAnchorAmount}
               suffix={anchorUnit === 'pcs' ? undefined : units[anchorUnit][0]}
               stepper={anchorUnit === 'pcs'}
               min={0}
@@ -139,7 +141,7 @@ export function RecipeView({ recipe }: RecipeViewProps) {
         )}
       </Card>
 
-      <WarningList messages={res.errors} />
+      <WarningList messages={[...res.errors, ...anchorMismatches(recipe, [variant])]} />
 
       <IngredientTable recipe={recipe} variant={variant} res={res} checked={checked} onToggle={toggle} />
       <div className={s.tableNote}>

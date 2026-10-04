@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { allIngredients, computeVariant, fmtPct, usesAmounts, variantOf } from '../../calc'
+import { allIngredients, anchorMismatches, isAnchor, computeVariant, fmtPct, usesAmounts, variantOf } from '../../calc'
 import { TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Input, Select, TextArea } from '../../components/Input'
@@ -13,7 +13,7 @@ import { categories } from '../../types'
 import type { Category, Recipe, Section, Variant } from '../../types'
 import { clone, placeById, uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
-import { copyVariant, moveSection, placeIngredient } from './recipe'
+import { copyVariant, moveSection, placeIngredient, syncAnchor } from './recipe'
 import { ScalingCard } from './ScalingCard'
 import { SectionCard } from './SectionCard'
 import { useDragSort } from './useDragSort'
@@ -27,7 +27,10 @@ interface RecipeEditProps {
 
 export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   const { save, remove } = useStore()
-  const [r, setR] = useState<Recipe>(() => clone(initial))
+  const [r, setRaw] = useState<Recipe>(() => clone(initial))
+  // Every edit goes through here, so the default amount and the anchor's amount stay in sync.
+  const setR = (fn: (p: Recipe) => Recipe) => setRaw((p) => syncAnchor(p, fn(p)))
+  const [triedSave, setTriedSave] = useState(false)
   const [vid, setVid] = useState(() => variantOf(initial).id)
   // Snapshot from mount: for a new recipe the `initial` prop is rebuilt on every render.
   const [pristine] = useState(() => JSON.stringify(initial))
@@ -36,6 +39,8 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   const pctById = new Map(res.rows.map((x) => [x.ingredient.id, x.pct]))
 
   const set = (patch: Partial<Recipe>) => setR((p) => ({ ...p, ...patch }))
+  // Shown once a save was refused, and updated live until fixed.
+  const saveErrors = triedSave ? anchorMismatches(r) : []
   const setVariant = (fn: (v: Variant) => Variant) =>
     setR((p) => ({ ...p, variants: updateById(p.variants, variant.id, fn) }))
   const setSection = (sid: string, fn: (s: Section) => Section) =>
@@ -47,6 +52,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   ]
   const usesLiquidRemainder = allIngs.some((i) => i.group === 'liquid' && i.amount.kind === 'remainder')
   const amounts = usesAmounts(r)
+  const anchorId = amounts ? allIngs.find((i) => isAnchor(r, i))?.id : undefined
   const multiSection = variant.sections.length > 1
   const drag = useDragSort(
     'y',
@@ -55,6 +61,11 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   )
 
   const onSave = () => {
+    if (anchorMismatches(r).length) {
+      setTriedSave(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
     const out = {
       ...r,
       name: r.name.trim() || 'Untitled',
@@ -97,6 +108,8 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
           </TextButton>
         }
       />
+
+      <WarningList messages={saveErrors} />
 
       <Card>
         <div className={s.nameRow}>
@@ -153,6 +166,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
           allIngredients={allIngs}
           modifierEnabled={r.modifierEnabled}
           amounts={amounts}
+          anchorId={anchorId}
           onChange={(fn) => setSection(sec.id, fn)}
           drag={drag}
           canDrag={allIngs.length > 1 || multiSection}

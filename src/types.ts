@@ -83,7 +83,7 @@ export interface Recipe {
   portions: number
   portionSize: number
   anchorWeight: number
-  anchorAmount: number // in the anchor's unit, when anchorBy = 'amount'
+  defaultAmount: number // when anchorBy = 'amount': the anchor amount the recipe is written for (and opens with)
   showPortions: boolean // in 'total'/'anchor' mode: show portion size output (never when scaling by amount)
   setAsides: SetAside[]
   modifierEnabled: boolean

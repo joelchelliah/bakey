@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { PointerEvent, RefCallback } from 'react'
-import { fmtPct } from '../../calc'
+import { fmtAmount, fmtPct } from '../../calc'
 import { IconButton } from '../../components/Button'
 import { Hint } from '../../components/Hint'
 import { Input, Select } from '../../components/Input'
@@ -34,6 +34,8 @@ interface IngredientEditorProps {
   modifierEnabled: boolean
   /** The recipe scales by amount: offer fixed amounts and units instead of percentages and groups. */
   amounts: boolean
+  /** The anchor when scaling by amount: its amount is the default amount, so it's shown, not edited. */
+  isAnchor: boolean
   onChange: (p: Partial<Ingredient>) => void
   dragRef: RefCallback<HTMLElement>
   dragging: boolean
@@ -48,6 +50,7 @@ export function IngredientEditor({
   others,
   modifierEnabled,
   amounts,
+  isAnchor,
   onChange,
   dragRef,
   dragging,
@@ -97,6 +100,11 @@ export function IngredientEditor({
             suffix="%"
             onChange={(n) => onChange({ amount: { kind: 'percent', value: n } })}
           />
+        ) : a.kind === 'fixed' && isAnchor ? (
+          <button type="button" className={s.computed} onClick={() => setOpen(true)}>
+            <small>default</small>
+            {fmtAmount(a.value, a.unit)} {units[a.unit][0]}
+          </button>
         ) : a.kind === 'fixed' ? (
           <NumField
             narrow

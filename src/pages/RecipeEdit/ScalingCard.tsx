@@ -50,6 +50,11 @@ export function ScalingCard({ r, set, anchorOptions }: ScalingCardProps) {
           <Segmented small options={ANCHOR_BY} value={r.anchorBy} onChange={(anchorBy) => set({ anchorBy })} />
         </Row>
       )}
+      {usesAmounts(r) && (
+        <Row as="label" label="Default amount">
+          <NumField value={r.defaultAmount} onChange={(defaultAmount) => set({ defaultAmount })} stepper min={0} />
+        </Row>
+      )}
       {r.mode !== 'portions' && !usesAmounts(r) && (
         <Row as="label" label="Show portions">
           <Switch checked={r.showPortions} onChange={(showPortions) => set({ showPortions })} />

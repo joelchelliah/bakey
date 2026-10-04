@@ -31,9 +31,24 @@ export function allIngredients(v: Variant): { ing: Ingredient; sectionId: string
 }
 
 export function findAnchor(recipe: Recipe, v: Variant): Ingredient | undefined {
-  const name = recipe.anchorName?.trim().toLowerCase()
   const list = allIngredients(v).map((x) => x.ing)
-  return list.find((i) => i.name.trim().toLowerCase() === name) ?? list.find((i) => i.amount.kind !== 'toTaste')
+  return list.find((i) => isAnchor(recipe, i)) ?? list.find((i) => i.amount.kind !== 'toTaste')
+}
+
+/** Whether the ingredient is the one named as the recipe's anchor. */
+export function isAnchor(recipe: Recipe, ing: Ingredient): boolean {
+  return !!recipe.anchorName && ing.name.trim().toLowerCase() === recipe.anchorName.trim().toLowerCase()
+}
+
+/** When scaling by amount: a message per variant whose anchor amount differs from the default amount. */
+export function anchorMismatches(recipe: Recipe, variants = recipe.variants): string[] {
+  if (!usesAmounts(recipe)) return []
+  return variants.flatMap((v) => {
+    const anchor = findAnchor(recipe, v)
+    if (anchor?.amount.kind !== 'fixed' || anchor.amount.value === recipe.defaultAmount) return []
+    const where = recipe.variants.length > 1 ? ` in ${v.name || 'Untitled'}` : ''
+    return [`"${anchor.name}"${where} should be ${recipe.defaultAmount}, the default amount`]
+  })
 }
 
 /** Whether the recipe is written in fixed amounts (scaled by one ingredient's amount) instead of percentages. */
@@ -72,8 +87,9 @@ export function inputsOf(recipe: Recipe, v: Variant): Record<OverridableInput, n
   }
 }
 
-export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
-  if (usesAmounts(recipe)) return computeAmounts(recipe, v)
+/** `anchorAmount` is the amount to bake with when scaling by amount (defaults to the recipe's `defaultAmount`). */
+export function computeVariant(recipe: Recipe, v: Variant, anchorAmount = recipe.defaultAmount): VariantResult {
+  if (usesAmounts(recipe)) return computeAmounts(recipe, v, anchorAmount)
   const inputs = inputsOf(recipe, v)
   const items = allIngredients(v)
   const byId = new Map(items.map((x) => [x.ing.id, x.ing]))
@@ -197,10 +213,10 @@ export function computeVariant(recipe: Recipe, v: Variant): VariantResult {
 }
 
 /**
- * Scaling by amount: every amount is multiplied by the anchor amount over the anchor's written amount. There are no
- * percentages, totals or portions, since the units can differ.
+ * Scaling by amount: the recipe is written for `defaultAmount` of the anchor, so every amount is multiplied by the
+ * anchor amount over that. There are no percentages, totals or portions, since the units can differ.
  */
-function computeAmounts(recipe: Recipe, v: Variant): VariantResult {
+function computeAmounts(recipe: Recipe, v: Variant, anchorAmount: number): VariantResult {
   const items = allIngredients(v)
   const errors: string[] = []
   const mod = recipe.modifierEnabled ? 1 + inputsOf(recipe, v).modifier / 100 : 1
@@ -215,10 +231,11 @@ function computeAmounts(recipe: Recipe, v: Variant): VariantResult {
   })
 
   const anchor = findAnchor(recipe, v)
-  const written = anchor ? amounts[items.findIndex((x) => x.ing.id === anchor.id)] : undefined
+  const written = recipe.defaultAmount
   if (!anchor) errors.push('No anchor ingredient')
-  else if (anchor.amount.kind === 'fixed' && !written) errors.push(`"${anchor.name}" needs an amount to scale from`)
-  const factor = written ? recipe.anchorAmount / written : NaN
+  if (!(written > 0)) errors.push('The default amount needs to be above 0')
+  // A modified anchor still comes out at the entered amount.
+  const factor = written > 0 ? anchorAmount / written / (anchor?.modified ? mod : 1) : NaN
 
   const rows: IngredientResult[] = items.map(({ ing, sectionId }, i) => {
     const amount = amounts[i] ?? null
