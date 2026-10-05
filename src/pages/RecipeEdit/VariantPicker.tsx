@@ -92,7 +92,7 @@ export function VariantPicker({
             onChange={(n) => onChange((v) => ({ ...v, portions: n }))}
           />
         )}
-        {recipe.mode === 'portions' && (
+        {showsPortions(recipe) && recipe.mode === 'portions' && (
           <OverrideRow
             label="Portion size"
             sub="instead of the recipe's"

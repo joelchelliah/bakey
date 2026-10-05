@@ -6,10 +6,11 @@ export type ScalingMode =
   | 'anchor' // input: weight of one ingredient (e.g. eggs)
 
 /**
- * In 'anchor' mode: 'weight' scales percentages from the anchor's weight; 'amount' scales fixed amounts (in any unit)
- * by the anchor's amount over the amount the recipe is written for.
+ * In 'anchor' and 'portions' mode: 'weight' scales percentages (from the anchor's weight, or portions × portion size);
+ * 'amount' scales fixed amounts (in any unit) by the anchor's amount, or the number of portions, over the one the
+ * recipe is written for.
  */
-export type AnchorBy = 'weight' | 'amount'
+export type ScaleBy = 'weight' | 'amount'
 
 /** Units for fixed amounts, with their abbreviation and label. */
 export const units = {
@@ -77,13 +78,13 @@ export interface Recipe {
   notes: string
   mode: ScalingMode
   anchorName?: string // ingredient name used as anchor in 'anchor' mode (matched per variant)
-  anchorBy: AnchorBy
+  scaleBy: ScaleBy
   // Remembered inputs (updated from the recipe view)
   totalWeight: number
   portions: number
   portionSize: number
   anchorWeight: number
-  defaultAmount: number // when anchorBy = 'amount': the anchor amount the recipe is written for (and opens with)
+  defaultAmount: number // when scaleBy = 'amount': the anchor amount or portions the recipe is written for (and opens with)
   showPortions: boolean // in 'total'/'anchor' mode: show portion size output (never when scaling by amount)
   setAsides: SetAside[]
   modifierEnabled: boolean

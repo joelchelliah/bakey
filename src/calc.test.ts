@@ -7,6 +7,7 @@ import {
   fmtWeight,
   parseNum,
   showsPortions,
+  usesAmounts,
   type VariantResult,
 } from './calc'
 import { newRecipe } from './model'
@@ -172,7 +173,7 @@ const bananaVariant = (name: string, bananas: number): Variant => ({
 })
 
 describe('scaling by amount', () => {
-  const amounts = { mode: 'anchor', anchorBy: 'amount', anchorName: 'Bananas', defaultAmount: 3 } as const
+  const amounts = { mode: 'anchor', scaleBy: 'amount', anchorName: 'Bananas', defaultAmount: 3 } as const
   const bread: Omit<Ingredient, 'id'>[] = [
     { name: 'Bananas', group: 'other', amount: { kind: 'fixed', value: 3, unit: 'pcs' } },
     { name: 'Flour', group: 'other', amount: { kind: 'fixed', value: 240, unit: 'g' } },
@@ -230,7 +231,7 @@ describe('scaling by amount', () => {
     const r = newRecipe({ ...amounts, variants: [bananaVariant('A', 3), bananaVariant('B', 4)] })
     expect(anchorMismatches(r)).toEqual(['"bananas" in B should be 3, the default amount'])
     expect(anchorMismatches(r, [bananaVariant('A', 3)])).toEqual([])
-    expect(anchorMismatches({ ...r, anchorBy: 'weight' })).toEqual([])
+    expect(anchorMismatches({ ...r, scaleBy: 'weight' })).toEqual([])
   })
 
   it('warns when the default amount is not above 0', () => {
@@ -242,6 +243,48 @@ describe('scaling by amount', () => {
   it('never shows portions', () => {
     expect(showsPortions(newRecipe({ ...amounts, showPortions: true }))).toBe(false)
     expect(showsPortions(newRecipe({ mode: 'anchor', showPortions: true }))).toBe(true)
+  })
+})
+
+describe('scaling by portions with amounts', () => {
+  const portions = { mode: 'portions', scaleBy: 'amount', defaultAmount: 12 } as const
+  const muffins: Omit<Ingredient, 'id'>[] = [
+    { name: 'Eggs', group: 'other', amount: { kind: 'fixed', value: 3, unit: 'pcs' } },
+    { name: 'Flour', group: 'other', amount: { kind: 'fixed', value: 300, unit: 'g' }, modified: true },
+  ]
+
+  it('opens as written, at the default portions', () => {
+    const res = recipeWith(muffins, portions)
+    expect(res.errors).toEqual([])
+    expect(weight(res, 'Eggs')).toBeCloseTo(3, 6)
+    expect(weight(res, 'Flour')).toBeCloseTo(300, 6)
+  })
+
+  it('multiplies every amount by the portions over the default portions, with the modifier', () => {
+    const res = recipeWith(muffins, portions, 8)
+    expect(weight(res, 'Eggs')).toBeCloseTo(2, 6)
+    expect(weight(res, 'Flour')).toBeCloseTo(200, 6)
+    const modified = recipeWith(muffins, { ...portions, modifierEnabled: true, modifier: 50 }, 8)
+    expect(weight(modified, 'Flour')).toBeCloseTo(300, 6)
+  })
+
+  it('needs no anchor, and ignores a leftover anchor name', () => {
+    const res = recipeWith(muffins, { ...portions, anchorName: 'Eggs' }, 6)
+    expect(res.errors).toEqual([])
+    expect(weight(res, 'Eggs')).toBeCloseTo(1.5, 6)
+    const r = newRecipe({ ...portions, anchorName: 'bananas', variants: [bananaVariant('A', 3)] })
+    expect(anchorMismatches(r)).toEqual([])
+  })
+
+  it('warns when the default portions are not above 0', () => {
+    expect(recipeWith(muffins, { ...portions, defaultAmount: 0 }).errors).toEqual([
+      'The default portions need to be above 0',
+    ])
+  })
+
+  it('shows no portion sizes, and total weight mode never scales by amount', () => {
+    expect(showsPortions(newRecipe(portions))).toBe(false)
+    expect(usesAmounts(newRecipe({ ...portions, mode: 'total' }))).toBe(false)
   })
 })
 

@@ -56,7 +56,7 @@ const setAnchor = (r: Recipe, variantId: string, value: number): Recipe => ({
 describe('syncAnchor', () => {
   const base = newRecipe({
     mode: 'anchor',
-    anchorBy: 'amount',
+    scaleBy: 'amount',
     anchorName: 'Bananas',
     defaultAmount: 4,
     variants: [bananaVariant('A', 4), bananaVariant('B', 4)],
@@ -76,15 +76,23 @@ describe('syncAnchor', () => {
   it('picking an anchor or switching to scaling by amount takes the anchor amount', () => {
     const flour = syncAnchor(base, { ...base, anchorName: 'flour' })
     expect(flour.defaultAmount).toBe(200)
-    const weight = { ...base, anchorBy: 'weight' as const, defaultAmount: 1 }
-    expect(syncAnchor(weight, { ...weight, anchorBy: 'amount' }).defaultAmount).toBe(4)
+    const weight = { ...base, scaleBy: 'weight' as const, defaultAmount: 1 }
+    expect(syncAnchor(weight, { ...weight, scaleBy: 'amount' }).defaultAmount).toBe(4)
   })
 
   it('leaves other edits and other modes alone', () => {
     const renamed = { ...base, name: 'Banana bread' }
     expect(syncAnchor(base, renamed)).toBe(renamed)
-    const weight = { ...base, anchorBy: 'weight' as const }
+    const weight = { ...base, scaleBy: 'weight' as const }
     const edited = { ...weight, defaultAmount: 2 }
     expect(syncAnchor(weight, edited)).toBe(edited)
+    const portions = { ...base, mode: 'portions' as const }
+    const twelve = { ...portions, defaultAmount: 12 }
+    expect(syncAnchor(portions, twelve)).toBe(twelve)
+  })
+
+  it('switching from portions to an anchor takes the anchor amount', () => {
+    const portions = { ...base, mode: 'portions' as const, defaultAmount: 12 }
+    expect(syncAnchor(portions, { ...portions, mode: 'anchor' }).defaultAmount).toBe(4)
   })
 })

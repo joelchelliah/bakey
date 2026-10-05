@@ -35,8 +35,8 @@ describe('normalizeRecipe', () => {
       ],
     })
     expect(r).toMatchObject({ mode: 'total', category: 'other', totalWeight: 1000 })
-    expect(normalizeRecipe({ id: 'a', anchorBy: 'volume', defaultAmount: 'two' })).toMatchObject({
-      anchorBy: 'weight',
+    expect(normalizeRecipe({ id: 'a', scaleBy: 'volume', defaultAmount: 'two' })).toMatchObject({
+      scaleBy: 'weight',
       defaultAmount: 1,
     })
     expect(r?.setAsides).toEqual([{ id: expect.any(String), label: 'Baby', weight: 165 }])
@@ -67,6 +67,12 @@ describe('normalizeRecipe', () => {
       { kind: 'fixed', value: 3, unit: 'pcs' },
       { kind: 'fixed', value: 0, unit: 'g' },
     ])
+  })
+
+  it('reads the old name of scaleBy', () => {
+    const r = normalizeRecipe({ id: 'a', anchorBy: 'amount' })
+    expect(r?.scaleBy).toBe('amount')
+    expect(r).not.toHaveProperty('anchorBy')
   })
 
   it('keeps unknown fields, so data from a newer version survives a save', () => {

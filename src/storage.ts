@@ -9,7 +9,7 @@ export const keys = {
   pending: 'bakey.pending.v1',
   /** Ticked ingredients on a recipe's checklist. */
   checked: (recipeId: string) => `${CHECKED_PREFIX}${recipeId}`,
-  /** Last anchor amount used on a recipe that scales by amount. */
+  /** Last anchor amount or number of portions used on a recipe that scales by amount. */
   amount: (recipeId: string) => `${AMOUNT_PREFIX}${recipeId}`,
   /** Last email used to sign in. Stored as a plain string, not JSON. */
   email: 'bakey.email',

@@ -1,4 +1,4 @@
-import { allIngredients, isAnchor, usesAmounts } from '../../calc'
+import { allIngredients, isAnchor, usesAnchorAmount } from '../../calc'
 import type { Ingredient, Recipe, Variant } from '../../types'
 import { clone, swapById, uid } from '../../util'
 
@@ -55,15 +55,15 @@ const fixedAnchors = (r: Recipe) =>
 const fixedValue = (i: Ingredient) => (i.amount.kind === 'fixed' ? i.amount.value : undefined)
 
 /**
- * When scaling by amount, keeps the default amount and the anchor's amount in every variant equal, after an edit from
+ * When scaling by an anchor's amount, keeps the default amount and the anchor's amount in every variant equal, after an edit from
  * `prev` to `next`: a new default sets the anchors; a new anchor (picked, or switched to scaling by amount) or an edited
  * anchor amount sets the default and the other anchors.
  */
 export function syncAnchor(prev: Recipe, next: Recipe): Recipe {
-  if (!usesAmounts(next)) return next
+  if (!usesAnchorAmount(next)) return next
   const anchors = fixedAnchors(next)
   const before = new Map(fixedAnchors(prev).map((i) => [i.id, fixedValue(i)]))
-  const picked = !usesAmounts(prev) || next.anchorName !== prev.anchorName
+  const picked = !usesAnchorAmount(prev) || next.anchorName !== prev.anchorName
   const edited = picked ? anchors[0] : anchors.find((i) => before.get(i.id) !== fixedValue(i))
   const value = next.defaultAmount !== prev.defaultAmount ? next.defaultAmount : edited && fixedValue(edited)
   if (value === undefined) return next

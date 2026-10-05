@@ -36,10 +36,11 @@ export function RecipeView({ recipe }: RecipeViewProps) {
   const { saveSoon } = useStore()
   useWakeLock(true)
   const [checked, setChecked] = useLocalState<string[]>(keys.checked(recipe.id), [])
-  const [anchorAmount, setAnchorAmount] = useLocalState(keys.amount(recipe.id), recipe.defaultAmount)
+  // When scaling by amount: the anchor amount or number of portions to bake.
+  const [amount, setAmount] = useLocalState(keys.amount(recipe.id), recipe.defaultAmount)
 
   const variant = variantOf(recipe)
-  const res = useMemo(() => computeVariant(recipe, variant, anchorAmount), [recipe, variant, anchorAmount])
+  const res = useMemo(() => computeVariant(recipe, variant, amount), [recipe, variant, amount])
   const anchor = recipe.mode === 'anchor' ? findAnchor(recipe, variant) : undefined
   const anchorLabel = anchor?.name.toLowerCase() ?? 'anchor'
   const amounts = usesAmounts(recipe)
@@ -94,14 +95,19 @@ export function RecipeView({ recipe }: RecipeViewProps) {
             <NumField value={recipe.anchorWeight} onChange={(n) => update({ anchorWeight: n })} suffix="g" min={0} />
           </Row>
         )}
-        {amounts && (
+        {amounts && recipe.mode === 'portions' && (
+          <Row as="label" label="Portions">
+            <NumField value={amount} onChange={setAmount} stepper min={1} />
+          </Row>
+        )}
+        {amounts && recipe.mode === 'anchor' && (
           <Row
             as="label"
             label={`${anchorUnit === 'g' ? 'Weight' : anchorUnit === 'pcs' ? 'Number' : 'Amount'} of ${anchorLabel}`}
           >
             <NumField
-              value={anchorAmount}
-              onChange={setAnchorAmount}
+              value={amount}
+              onChange={setAmount}
               suffix={anchorUnit === 'pcs' ? undefined : units[anchorUnit][0]}
               stepper={anchorUnit === 'pcs'}
               min={0}
@@ -113,7 +119,7 @@ export function RecipeView({ recipe }: RecipeViewProps) {
             <NumField value={inputs.portions} onChange={(n) => setInput('portions', n)} stepper min={1} />
           </Row>
         )}
-        {recipe.mode === 'portions' && (
+        {showPortions && recipe.mode === 'portions' && (
           <Row as="label" label="Portion size">
             <NumField
               value={inputs.portionSize}
@@ -134,7 +140,7 @@ export function RecipeView({ recipe }: RecipeViewProps) {
             <NumField value={inputs.modifier} onChange={(n) => setInput('modifier', n)} suffix="%" step={5} stepper />
           </Row>
         )}
-        {recipe.mode === 'portions' && (
+        {showPortions && recipe.mode === 'portions' && (
           <Row label="Total dough weight">
             <RowValue>{fmtWeight(res.totalWeight)} g</RowValue>
           </Row>

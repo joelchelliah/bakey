@@ -1,10 +1,10 @@
 import {
   categories,
-  type AnchorBy,
   type Amount,
   type Group,
   type Ingredient,
   type Recipe,
+  type ScaleBy,
   type ScalingMode,
   type Unit,
   units,
@@ -23,7 +23,7 @@ export function newRecipe(r: Partial<Recipe> = {}): Recipe {
     totalWeight: 1000,
     portions: 1,
     portionSize: 250,
-    anchorBy: 'weight',
+    scaleBy: 'weight',
     anchorWeight: 100,
     defaultAmount: 1,
     showPortions: false,
@@ -67,7 +67,7 @@ const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T)
 const listOf = <T>(v: unknown, fn: (x: Raw) => T): T[] => (Array.isArray(v) ? v.filter(isObj).map(fn) : [])
 
 const MODES: ScalingMode[] = ['total', 'portions', 'anchor']
-const ANCHOR_BY: AnchorBy[] = ['weight', 'amount']
+const SCALE_BY: ScaleBy[] = ['weight', 'amount']
 const UNITS = Object.keys(units) as Unit[]
 const GROUPS: Group[] = ['flour', 'liquid', 'other']
 
@@ -95,6 +95,8 @@ function ingredient(i: Raw): Ingredient {
  */
 export function normalizeRecipe(raw: unknown): Recipe | null {
   if (!isObj(raw) || typeof raw.id !== 'string' || !raw.id) return null
+  // `scaleBy` used to be called `anchorBy`.
+  const { anchorBy, ...rest } = raw
   const d = newRecipe()
   const variants = listOf(raw.variants, (v) => ({
     ...v,
@@ -112,7 +114,7 @@ export function normalizeRecipe(raw: unknown): Recipe | null {
     })),
   }))
   return {
-    ...raw,
+    ...rest,
     id: raw.id,
     name: str(raw.name),
     emoji: str(raw.emoji, d.emoji),
@@ -120,7 +122,7 @@ export function normalizeRecipe(raw: unknown): Recipe | null {
     notes: str(raw.notes),
     mode: oneOf(raw.mode, MODES, d.mode),
     anchorName: optStr(raw.anchorName),
-    anchorBy: oneOf(raw.anchorBy, ANCHOR_BY, d.anchorBy),
+    scaleBy: oneOf(raw.scaleBy ?? anchorBy, SCALE_BY, d.scaleBy),
     totalWeight: num(raw.totalWeight, d.totalWeight),
     portions: num(raw.portions, d.portions),
     portionSize: num(raw.portionSize, d.portionSize),

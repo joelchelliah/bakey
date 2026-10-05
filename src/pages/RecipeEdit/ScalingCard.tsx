@@ -6,7 +6,7 @@ import { NumField } from '../../components/NumField'
 import { Row } from '../../components/Row'
 import { Segmented } from '../../components/Segmented'
 import { Switch } from '../../components/Switch'
-import type { AnchorBy, Recipe, ScalingMode } from '../../types'
+import type { Recipe, ScaleBy, ScalingMode } from '../../types'
 import { uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
 import s from './ScalingCard.module.css'
@@ -17,7 +17,7 @@ const MODES: { value: ScalingMode; label: string }[] = [
   { value: 'anchor', label: 'One ingredient' },
 ]
 
-const ANCHOR_BY: { value: AnchorBy; label: string }[] = [
+const SCALE_BY: { value: ScaleBy; label: string }[] = [
   { value: 'weight', label: 'Weight' },
   { value: 'amount', label: 'Amount' },
 ]
@@ -45,13 +45,13 @@ export function ScalingCard({ r, set, anchorOptions }: ScalingCardProps) {
           </Select>
         </Row>
       )}
-      {r.mode === 'anchor' && (
+      {r.mode !== 'total' && (
         <Row label="Scale by">
-          <Segmented small options={ANCHOR_BY} value={r.anchorBy} onChange={(anchorBy) => set({ anchorBy })} />
+          <Segmented small options={SCALE_BY} value={r.scaleBy} onChange={(scaleBy) => set({ scaleBy })} />
         </Row>
       )}
       {usesAmounts(r) && (
-        <Row as="label" label="Default amount">
+        <Row as="label" label={r.mode === 'portions' ? 'Default portions' : 'Default amount'}>
           <NumField value={r.defaultAmount} onChange={(defaultAmount) => set({ defaultAmount })} stepper min={0} />
         </Row>
       )}

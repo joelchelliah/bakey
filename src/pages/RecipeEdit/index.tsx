@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react'
-import { allIngredients, anchorMismatches, isAnchor, computeVariant, fmtPct, usesAmounts, variantOf } from '../../calc'
+import {
+  allIngredients,
+  anchorMismatches,
+  isAnchor,
+  computeVariant,
+  fmtPct,
+  usesAmounts,
+  usesAnchorAmount,
+  variantOf,
+} from '../../calc'
 import { TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Input, Select, TextArea } from '../../components/Input'
@@ -52,7 +61,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
   ]
   const usesLiquidRemainder = allIngs.some((i) => i.group === 'liquid' && i.amount.kind === 'remainder')
   const amounts = usesAmounts(r)
-  const anchorId = amounts ? allIngs.find((i) => isAnchor(r, i))?.id : undefined
+  const anchorId = usesAnchorAmount(r) ? allIngs.find((i) => isAnchor(r, i))?.id : undefined
   const multiSection = variant.sections.length > 1
   const drag = useDragSort(
     'y',
