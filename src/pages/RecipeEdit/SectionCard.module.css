@@ -3,3 +3,10 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+.addRow {
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+  white-space: nowrap;
+}

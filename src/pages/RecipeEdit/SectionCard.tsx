@@ -1,4 +1,5 @@
-import { IconButton } from '../../components/Button'
+import { useState } from 'react'
+import { IconButton, TextButton } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { Input } from '../../components/Input'
 import { Row } from '../../components/Row'
@@ -52,8 +53,20 @@ export function SectionCard({
   canMoveDown,
   onDelete,
 }: SectionCardProps) {
+  // The last removed ingredient and where it was, until it's restored or another one is added.
+  const [removed, setRemoved] = useState<{ ing: Ingredient; index: number } | null>(null)
   const setIng = (iid: string, patch: Partial<Ingredient>) =>
     onChange((x) => ({ ...x, ingredients: updateById(x.ingredients, iid, patch) }))
+
+  const onUndo = () => {
+    if (!removed) return
+    onChange((x) => {
+      const ingredients = [...x.ingredients]
+      ingredients.splice(removed.index, 0, removed.ing)
+      return { ...x, ingredients }
+    })
+    setRemoved(null)
+  }
 
   return (
     <Card ref={drag.list(section.id)} unclipped={!!drag.dragging}>
@@ -76,7 +89,7 @@ export function SectionCard({
           />
         </Row>
       )}
-      {section.ingredients.map((ing) => (
+      {section.ingredients.map((ing, index) => (
         <IngredientEditor
           key={ing.id}
           ing={ing}
@@ -89,32 +102,37 @@ export function SectionCard({
           dragRef={drag.item(ing.id)}
           dragging={drag.dragging === ing.id}
           onGrab={canDrag ? (e) => drag.start(e, ing.id) : undefined}
-          onDelete={() =>
+          onDelete={() => {
+            setRemoved({ ing, index })
             onChange((x) => ({
               ...x,
               ingredients: x.ingredients.filter((i) => i.id !== ing.id),
             }))
-          }
+          }}
         />
       ))}
-      <AddButton
-        onClick={() =>
-          onChange((x) => ({
-            ...x,
-            ingredients: [
-              ...x.ingredients,
-              {
-                id: uid(),
-                name: '',
-                group: 'other',
-                amount: amounts ? { kind: 'fixed', value: 0, unit: 'g' } : { kind: 'percent', value: 0 },
-              },
-            ],
-          }))
-        }
-      >
-        Ingredient
-      </AddButton>
+      <div className={s.addRow}>
+        <AddButton
+          onClick={() => {
+            setRemoved(null)
+            onChange((x) => ({
+              ...x,
+              ingredients: [
+                ...x.ingredients,
+                {
+                  id: uid(),
+                  name: '',
+                  group: 'other',
+                  amount: amounts ? { kind: 'fixed', value: 0, unit: 'g' } : { kind: 'percent', value: 0 },
+                },
+              ],
+            }))
+          }}
+        >
+          Ingredient
+        </AddButton>
+        {removed && <TextButton onClick={onUndo}>Undo removal</TextButton>}
+      </div>
     </Card>
   )
 }

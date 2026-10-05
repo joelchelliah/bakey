@@ -118,6 +118,7 @@ export function IngredientEditor({
             {a.kind !== 'toTaste' && fmtPct(computedPct)}
           </button>
         )}
+        <IconButton icon="trash" size={18} danger label="Delete ingredient" onClick={onDelete} />
         <IconButton icon="more" size={18} label="More options" aria-expanded={open} onClick={() => setOpen(!open)} />
       </Row>
       {open && (
@@ -188,10 +189,6 @@ export function IngredientEditor({
               <Switch checked={!!ing.modified} onChange={(modified) => onChange({ modified })} />
             </Row>
           )}
-          <Row className={cx(s.detail, s.actions)}>
-            <span className={s.grow} />
-            <IconButton icon="trash" size={18} danger label="Delete ingredient" onClick={onDelete} />
-          </Row>
         </div>
       )}
     </div>

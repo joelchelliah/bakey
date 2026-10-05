@@ -29,9 +29,6 @@
   min-height: 46px;
   border-bottom: 0;
 }
-.details > .actions {
-  padding-right: 4px;
-}
 
 .select {
   max-width: 60%;
