@@ -227,6 +227,13 @@ describe('scaling by amount', () => {
     )
   })
 
+  it('warns when the anchor is to taste', () => {
+    const salt: Omit<Ingredient, 'id'> = { name: 'Salt', group: 'other', amount: { kind: 'toTaste' } }
+    const flour: Omit<Ingredient, 'id'> = { name: 'Flour', group: 'flour', amount: { kind: 'percent', value: 100 } }
+    const res = recipeWith([flour, salt], { mode: 'anchor', anchorName: 'Salt' })
+    expect(res.errors).toEqual(['"Salt" is the anchor, so it needs an amount'])
+  })
+
   it('finds variants whose anchor does not match the default amount', () => {
     const r = newRecipe({ ...amounts, variants: [bananaVariant('A', 3), bananaVariant('B', 4)] })
     expect(anchorMismatches(r)).toEqual(['"bananas" in B should be 3, the default amount'])

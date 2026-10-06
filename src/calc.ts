@@ -185,6 +185,7 @@ export function computeVariant(recipe: Recipe, v: Variant, amount = recipe.defau
     const ap = anchor ? pcts.find((x) => x.ing.id === anchor.id)?.effectivePct : null
     base = ap ? (recipe.anchorWeight / ap) * 100 : NaN
     if (!anchor) errors.push('No anchor ingredient')
+    else if (anchor.amount.kind === 'toTaste') errors.push(`"${anchor.name}" is the anchor, so it needs an amount`)
   } else {
     const total = recipe.mode === 'portions' ? inputs.portions * inputs.portionSize : recipe.totalWeight
     base = totalPct > 0 ? (total / totalPct) * 100 : NaN

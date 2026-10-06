@@ -13,5 +13,6 @@
   --knob: #fff;
   --radius: 14px;
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
   color-scheme: dark;
 }

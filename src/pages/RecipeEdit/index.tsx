@@ -22,6 +22,7 @@ import { categories } from '../../types'
 import type { Category, Recipe, Section, Variant } from '../../types'
 import { clone, placeById, uid, updateById } from '../../util'
 import { AddButton } from './AddButton'
+import { MarkdownHelp } from './MarkdownHelp'
 import { copyVariant, moveSection, placeIngredient, syncAnchor } from './recipe'
 import { ScalingCard } from './ScalingCard'
 import { SectionCard } from './SectionCard'
@@ -205,7 +206,10 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
       <WarningList messages={res.errors} />
       {!amounts && <div className={s.total}>Total: {fmtPct(res.totalPct)}</div>}
 
-      <SectionTitle>Notes</SectionTitle>
+      <SectionTitle>
+        Notes
+        <MarkdownHelp />
+      </SectionTitle>
       <Card>
         <TextArea
           rows={6}

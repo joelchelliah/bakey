@@ -26,6 +26,7 @@
 
 .notes {
   padding: 4px 16px 12px;
+  font-variant-numeric: tabular-nums;
 }
 .notes h2 {
   font-size: 13px;
@@ -33,10 +34,4 @@
   letter-spacing: 0.06em;
   color: var(--muted);
   margin: 10px 0 6px;
-}
-.notes p {
-  white-space: pre-wrap;
-  margin: 0;
-  tab-size: 4;
-  font-variant-numeric: tabular-nums;
 }

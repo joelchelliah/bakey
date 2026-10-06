@@ -13,12 +13,13 @@ import { cx } from '../../util'
 import { Grip } from './Grip'
 import s from './IngredientEditor.module.css'
 
-const KINDS: { kind: Amount['kind']; label: string; amounts: boolean }[] = [
+/** `amounts`: offered only when scaling by amount (true), only with percentages (false), or always (undefined). */
+const KINDS: { kind: Amount['kind']; label: string; amounts?: boolean }[] = [
   { kind: 'percent', label: 'Percent', amounts: false },
   { kind: 'remainder', label: 'Remainder of group', amounts: false },
   { kind: 'relative', label: '% of another ingredient', amounts: false },
   { kind: 'fixed', label: 'Fixed', amounts: true },
-  { kind: 'toTaste', label: 'To taste (no amount)', amounts: true },
+  { kind: 'toTaste', label: 'To taste (no amount)' },
 ]
 
 const GROUPS: { value: Group; label: string }[] = [
@@ -125,7 +126,7 @@ export function IngredientEditor({
         <div className={s.details}>
           <Row as="label" label="Amount" className={s.detail}>
             <Select className={s.select} value={a.kind} onChange={(e) => setKind(e.target.value as Amount['kind'])}>
-              {KINDS.filter((k) => k.amounts === amounts || k.kind === a.kind).map((k) => (
+              {KINDS.filter((k) => (k.amounts ?? amounts) === amounts || k.kind === a.kind).map((k) => (
                 <option key={k.kind} value={k.kind}>
                   {k.label}
                 </option>

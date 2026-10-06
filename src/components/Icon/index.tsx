@@ -11,6 +11,7 @@ const paths = {
   copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
   x: 'M18 6L6 18M6 6l12 12',
   grip: 'M5 8h14M5 12h14M5 16h14',
+  help: 'M9 8a3 3 0 115 2.2c-1.2.8-2 1.4-2 2.8M12 17h.01',
 } as const
 
 export type IconName = keyof typeof paths
@@ -28,7 +29,7 @@ export function Icon({ name, size = 22 }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={name === 'more' ? 3.5 : 2}
+      strokeWidth={name === 'more' ? 3.5 : name === 'help' ? 3 : 2}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden

@@ -27,6 +27,7 @@ import { units, type Recipe, type Variant } from '../../types'
 import { updateById } from '../../util'
 import { IngredientTable } from './IngredientTable'
 import s from './index.module.css'
+import { Notes } from './Notes'
 
 interface RecipeViewProps {
   recipe: Recipe
@@ -190,7 +191,7 @@ export function RecipeView({ recipe }: RecipeViewProps) {
       {recipe.notes.trim() && (
         <Card className={s.notes}>
           <h2>Notes</h2>
-          <p>{recipe.notes}</p>
+          <Notes text={recipe.notes} />
         </Card>
       )}
     </Page>

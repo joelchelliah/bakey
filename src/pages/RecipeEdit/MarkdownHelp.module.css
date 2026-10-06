@@ -1,0 +1,100 @@
+.open {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 6px;
+  top: -1px; /* `middle` centres on lowercase letters; the title is all caps */
+  vertical-align: middle;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  color: var(--muted);
+}
+/* A bigger tap target than the icon itself. */
+.open::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+/* The dialog sits inside the section title, so reset what it inherits from there. */
+.dialog {
+  width: min(360px, calc(100% - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.body {
+  padding: 4px 16px 16px;
+}
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-right: -12px;
+}
+.head h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.rows {
+  margin: 0;
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.row dd {
+  margin: 0;
+}
+.syntax {
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+.h1,
+.h2,
+.h3 {
+  font-weight: 700;
+  line-height: 1;
+}
+.h1 {
+  font-size: 20px;
+}
+.h2 {
+  font-size: 17px;
+}
+.h3 {
+  color: var(--muted);
+}
+.em {
+  color: var(--accent);
+}
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+
+.foot {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
