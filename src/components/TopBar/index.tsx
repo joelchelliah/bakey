@@ -7,13 +7,15 @@ interface TopBarProps {
   end?: React.ReactNode
 }
 
-/** Sticky header. */
+/** Sticky header: a floating bar, inset from the screen edges. */
 export function TopBar({ start, title, end }: TopBarProps) {
   return (
     <header className={s.bar}>
-      {start}
-      {title && <span className={s.title}>{title}</span>}
-      {end ? <div className={s.end}>{end}</div> : <span className={s.spacer} />}
+      <div className={s.inner}>
+        {start}
+        {title && <span className={s.title}>{title}</span>}
+        {end ? <div className={s.end}>{end}</div> : <span className={s.spacer} />}
+      </div>
     </header>
   )
 }

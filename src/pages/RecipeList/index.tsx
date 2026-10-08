@@ -17,7 +17,15 @@ export function RecipeList() {
   return (
     <Page>
       <TopBar
-        start={<span className={s.brand}>Bakey</span>}
+        start={
+          <span className={s.brand}>
+            <svg className={s.logo} width={40} height={40} viewBox="0 0 32 32" aria-hidden>
+              <path d="M3 23c0-8 5.8-14 13-14s13 6 13 14z" />
+              <path d="M11 14l2 4M16 13v5M21 14l-2 4" />
+            </svg>
+            Bakey
+          </span>
+        }
         end={
           <>
             {sync === 'pending' && (
