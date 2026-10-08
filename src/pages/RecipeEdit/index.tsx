@@ -121,7 +121,7 @@ export function RecipeEdit({ initial, isNew }: RecipeEditProps) {
 
       <WarningList messages={saveErrors} />
 
-      <Card>
+      <Card className={s.head}>
         <div className={s.nameRow}>
           <Input
             className={s.emoji}
