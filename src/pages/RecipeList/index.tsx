@@ -33,6 +33,9 @@ export function RecipeList() {
                 Offline
               </span>
             )}
+            <a className={s.add} href={href({ name: 'new' })} aria-label="New recipe">
+              <Icon name="plus" size={22} />
+            </a>
             <IconButton icon="gear" label="Settings" href={href({ name: 'settings' })} />
           </>
         }
@@ -65,10 +68,6 @@ export function RecipeList() {
           </section>
         ))
       )}
-
-      <a className={s.fab} href={href({ name: 'new' })} aria-label="New recipe">
-        <Icon name="plus" size={28} />
-      </a>
     </Page>
   )
 }

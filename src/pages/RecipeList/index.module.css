@@ -92,16 +92,17 @@
   color: var(--muted);
 }
 
-.fab {
-  position: fixed;
-  right: max(60px, calc(50% - 260px));
-  bottom: calc(32px + env(safe-area-inset-bottom));
-  width: 60px;
-  height: 60px;
+.add {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
   border-radius: 50%;
   display: grid;
   place-items: center;
+  flex: none;
   background: var(--accent);
   color: var(--accent-ink);
-  box-shadow: 0 6px 18px rgb(0 0 0 / 0.22);
+  box-shadow:
+    0 0 2px 1px rgb(0 0 0 / 0.2),
+    0 0 6px 3px rgb(0 0 0 / 0.3);
 }
