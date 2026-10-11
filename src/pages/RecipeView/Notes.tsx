@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { parseMarkdown, type Inline } from './markdown'
+import { cx } from '../../util'
 import s from './Notes.module.css'
 
 interface NotesProps {
@@ -38,7 +39,7 @@ export function Notes({ text }: NotesProps) {
     ))
     return block.ordered ? (
       // oxlint-disable-next-line react/no-array-index-key -- static parsed content
-      <ol key={i} className={s.list} start={block.start}>
+      <ol key={i} className={cx(s.list, s.ordered)} start={block.start}>
         {items}
       </ol>
     ) : (

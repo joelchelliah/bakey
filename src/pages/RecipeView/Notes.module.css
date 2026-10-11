@@ -11,6 +11,10 @@
 .list {
   padding-left: 22px;
 }
+/* Numbered lists sit one step further in, so they read as nested under a bullet list. */
+.ordered {
+  padding-left: 44px;
+}
 .list li + li {
   margin-top: 2px;
 }
